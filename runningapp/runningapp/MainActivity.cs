@@ -24,6 +24,7 @@ namespace runningapp
     public class MainActivity : AppCompatActivity, IOnMapReadyCallback, ILocationListener
     {
         // Google map variable
+        //verandering
         private GoogleMap gMap;
 
         // Location manager
