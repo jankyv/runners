@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="app_name">runningapp</string>
+  <string name="app_name">Running</string>
+  <string name="google_maps_key">AIzaSyASJzv77xkOmtcpdcE7pNVHK7UZSrQmC3o</string>
+  <string name="drawer_open">Open</string>
+  <string name="drawer_close">Close</string>
 </resources>
