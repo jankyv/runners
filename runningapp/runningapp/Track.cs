@@ -11,7 +11,7 @@ using Android.Views;
 using Android.Widget;
 using Android.Locations;
 
-namespace Running
+namespace runningapp
 {
     class Track
     {

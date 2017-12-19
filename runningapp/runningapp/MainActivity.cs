@@ -18,9 +18,9 @@ using Android.Views;
 using Android.Util;
 using System.Collections.Generic;
 
-namespace Running
+namespace runningapp
 {
-    [Activity(Label = "Running", MainLauncher = true, Theme = "@style/Theme.DesignDemo")]
+    [Activity(Label = "runningapp", MainLauncher = true, Theme = "@style/Theme.DesignDemo")]
     public class MainActivity : AppCompatActivity, IOnMapReadyCallback, ILocationListener
     {
         // Google map variable
