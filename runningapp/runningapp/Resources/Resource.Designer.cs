@@ -237,6 +237,9 @@ namespace runningapp
 			// aapt resource value: 0x7f020014
 			public const int common_google_signin_btn_text_light_pressed = 2130837524;
 			
+			// aapt resource value: 0x7f020015
+			public const int location = 2130837525;
+			
 			static Drawable()
 			{
 				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
