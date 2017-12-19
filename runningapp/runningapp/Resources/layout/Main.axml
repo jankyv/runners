@@ -3,45 +3,41 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-  <android.support.v4.widget.DrawerLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-      android:id="@+id/drawer_layout"
-      android:layout_height="match_parent"
-      android:layout_width="fill_parent"
-      android:fitsSystemWindows="true">
-    <LinearLayout
-        android:id="@+id/content_layout"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
+    <android.support.v4.widget.DrawerLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/drawer_layout"
         android:layout_height="match_parent"
-        android:minWidth="25px"
-        android:minHeight="25px">
-      <Button
-          android:id="@+id/zoomToLoc"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:text="Recenter" />
-
-      <Button
-          android:id="@+id/startTraining"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="Start"
-          android:layout_marginRight="0.0dp" />
-
-
-
-      <fragment
-          android:id="@+id/map"
-          android:layout_width="match_parent"
-          android:layout_height="match_parent"
-          android:name="com.google.android.gms.maps.MapFragment" />
-    </LinearLayout>
-    <android.support.design.widget.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_height="match_parent"
-        android:layout_width="300dp"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header" />
-  </android.support.v4.widget.DrawerLayout>
+        android:layout_width="fill_parent"
+        android:fitsSystemWindows="true">
+        <LinearLayout
+            android:id="@+id/content_layout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minWidth="25px"
+            android:minHeight="25px">
+            <Button
+                android:id="@+id/zoomToLoc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recenter" />
+            <Button
+                android:id="@+id/startTraining"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start"
+                android:layout_marginRight="0.0dp" />
+            <fragment
+                android:id="@+id/map"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:name="com.google.android.gms.maps.MapFragment" />
+        </LinearLayout>
+        <android.support.design.widget.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_height="match_parent"
+            android:layout_width="300dp"
+            android:layout_gravity="start"
+            android:fitsSystemWindows="true"
+            app:headerLayout="@layout/nav_header" />
+    </android.support.v4.widget.DrawerLayout>
 </LinearLayout>
