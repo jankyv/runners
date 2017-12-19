@@ -21,12 +21,8 @@ using System.Collections.Generic;
 namespace runningapp
 {
     [Activity(Label = "runningapp", MainLauncher = true, Theme = "@style/Theme.DesignDemo")]
-    public class MainActivity : AppCompatActivity, IOnMapReadyCallback, ILocationListener
+    public class MainActivity : AppCompatActivity, ILocationListener, GoogleMapFragment.OnMapControlClick
     {
-        // Google map variable
-        //verandering
-        private GoogleMap gMap;
-
         // Location manager
         protected LocationManager _locationManager = (LocationManager)Application.Context.GetSystemService(LocationService);
 
@@ -36,13 +32,7 @@ namespace runningapp
         //Training
         Training training;
 
-        // Layout variables
-        private Button recenter;
-        private DrawerLayout drawerLayout;
-        private NavigationView navigationView;
-        DisplayMetrics metrics;
-        private LinearLayout contentLayout;
-        private Button startButton;
+      
 
         private bool recording = false;
 
@@ -54,6 +44,9 @@ namespace runningapp
         private static Power POWER = Power.Medium;
         private static int ZOOM = 20;
         private static int MAPSIZE = 65;
+        private DrawerLayout drawerLayout;
+        private NavigationView navigationView;
+        private GoogleMapFragment mapFragment;
 
 
         // Override OnCreate
@@ -64,14 +57,17 @@ namespace runningapp
             // Set Content View to layout Main.axml
             SetContentView(Resource.Layout.Main);
 
-            // Set up the Layout variables and handlers
-            SetUpVariables();
+          
 
             // Set up the side menu
             SetUpSideMenu();
 
-            //Set up the Google Map
-            SetUpMap();
+            mapFragment = new GoogleMapFragment();
+            ShowFragment(mapFragment);
+
+            StartLocationUpdates();
+
+            
         }
 
         // Start location updates again OnResume 
@@ -81,56 +77,16 @@ namespace runningapp
             StartLocationUpdates();
         }
 
-        // Stop location updates OnPause to save battery 
-        protected override void OnPause()
+        // Method to show Fragment
+        private void ShowFragment(Android.App.Fragment fragment)
         {
-            base.OnPause();
-            _locationManager.RemoveUpdates(this);
+            Android.App.FragmentTransaction fragmentTransaction = FragmentManager.BeginTransaction();
+            fragmentTransaction.Replace(Resource.Id.content_main, fragment)                 
+                    .AddToBackStack(null)
+                    .Commit();
         }
 
-        //Method to set up the variables and handlers (LAYOUT)
-        private void SetUpVariables()
-        {
-            metrics = Resources.DisplayMetrics;
-            recenter = FindViewById<Button>(Resource.Id.zoomToLoc);
-            contentLayout = FindViewById<LinearLayout>(Resource.Id.content_layout);
-            startButton = FindViewById<Button>(Resource.Id.startTraining);
-            training = new Training();
-
-            recenter.Click += delegate
-            {
-                if (_location != null)
-                {
-                    ZoomToLocation(_location);
-                }
-            };
-
-            startButton.Click += delegate
-            {
-                if (recording == false)
-                {
-                    startButton.Text = "Pause";
-                    Toast.MakeText(this, "Training Started!", ToastLength.Short).Show();
-
-                }
-                else
-                {
-                    startButton.Text = "Start";
-                    Toast.MakeText(this, "Training Paused!", ToastLength.Short).Show();
-                    training.PauseTraining();
-
-
-                }
-                recording = !recording;
-
-
-
-            };
-
-
-
-
-        }
+        
 
         // Method to sey up the side menu (SIDEMENU)
         private void SetUpSideMenu()
@@ -161,59 +117,11 @@ namespace runningapp
             return true;
         }
 
-        // Method to display current location on Google Map (GOOGLEMAP)
-        private void DisplayLocation(Location l)
-        {
-            if (l != null)
-            {
-                if (gMap != null)
-                {
-                    MarkerOptions m = new MarkerOptions().SetPosition(new LatLng(l.Latitude, l.Longitude));
-                    gMap.AddMarker(m);
-                }
-            }
-        }
+        
 
-        // Method to zoom to current location in Google Map (GOOGLEMAP)
-        private void ZoomToLocation(Location l)
-        {
-            LatLng location = new LatLng(l.Latitude, l.Longitude);
-            CameraPosition.Builder builder = CameraPosition.InvokeBuilder();
-            builder.Target(location);
-            builder.Zoom(ZOOM);
-            CameraPosition cameraPosition = builder.Build();
-            CameraUpdate cameraUpdate = CameraUpdateFactory.NewCameraPosition(cameraPosition);
+       
 
-            if (gMap != null)
-            {
-                gMap.AnimateCamera(cameraUpdate);
-            }
-        }
-
-        // Method to set up the Google Map (GOOGLEMAP)
-        private void SetUpMap()
-        {
-            if (gMap == null)
-            {
-                //get the Google Map asynchronously and set it to the fragment with id Map in Main layout
-                FragmentManager.FindFragmentById<MapFragment>(Resource.Id.map).GetMapAsync(this);
-                var mapfragment = FragmentManager.FindFragmentById<MapFragment>(Resource.Id.map);
-                mapfragment.View.LayoutParameters.Height = (int)(metrics.HeightPixels * .8);
-                contentLayout.LayoutParameters.Height = (int)(metrics.HeightPixels * 0.2);
-
-
-
-            }
-        }
-
-        // OnMapReady to implement IOnMapReadyCallback class (GOOGLEMAP)
-        public void OnMapReady(GoogleMap googleMap)
-        {
-            gMap = googleMap;
-
-            //Request Location Updates;
-            StartLocationUpdates();
-        }
+        
 
         // Method to start requesting location updates (LOCATION)
         public void StartLocationUpdates()
@@ -228,7 +136,6 @@ namespace runningapp
             var locationProvider = _locationManager.GetBestProvider(criteriaForGPSService, true);
             Location currentLocation = _locationManager.GetLastKnownLocation(locationProvider);
             _location = currentLocation;
-            DisplayLocation(currentLocation);
             _locationManager.RequestLocationUpdates(locationProvider, 0, 0, this);
         }
 
@@ -242,7 +149,9 @@ namespace runningapp
                 alert.SetTitle("Location Settings");
                 alert.SetMessage("Location is required");
                 alert.SetPositiveButton("Settings", (senderAlert, args) => {
+                    
                     this.StartActivity(new Android.Content.Intent(Android.Provider.Settings.ActionLocationSourceSettings));
+                    
                 });
 
                 alert.SetNegativeButton("Cancel", (senderAlert, args) => {
@@ -259,12 +168,10 @@ namespace runningapp
         public void OnLocationChanged(Location location)
         {
             _location = location;
-            DisplayLocation(location);
             if (recording == true)
             {
                 training.AddPoint(location);
                 Toast.MakeText(this, "Locatie: " + location.ToString() + " toegevoegd aan: " + training.CurrentTrack().LocationList.ToString(), ToastLength.Short).Show();
-
             }
 
             Console.WriteLine(training.Tracks.ToString());
@@ -297,13 +204,30 @@ namespace runningapp
         // OnProviderEnabled to implement ILocationListener Class (LOCATION)
         public void OnProviderEnabled(string provider)
         {
-            StartLocationUpdates();
+            //StartLocationUpdates();
         }
 
         //OnStatusChanged to implement ILocationListener Class (LOCATION)
         public void OnStatusChanged(string provider, [GeneratedEnum] Availability status, Bundle extras)
         {
 
+        }
+
+        public void OnRecenterClick()
+        {          
+            Toast.MakeText(this, "Recenter Clicked", ToastLength.Short).Show();
+            //mapFragment.DisplayLocation(ToLatLng(_location));
+            mapFragment.ZoomToLocation(ToLatLng(_location));
+        }
+
+        public void OnStartTrainingClick()
+        {
+            Toast.MakeText(this, "Start Clicked", ToastLength.Short);
+        }
+
+        private LatLng ToLatLng(Location l)
+        {
+            return new LatLng(l.Latitude, l.Longitude);
         }
     }
 }

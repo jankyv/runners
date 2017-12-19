@@ -8,30 +8,14 @@
         android:layout_height="match_parent"
         android:layout_width="fill_parent"
         android:fitsSystemWindows="true">
-        <LinearLayout
-            android:id="@+id/content_layout"
-            android:orientation="vertical"
+       <RelativeLayout
+            android:id="@+id/content_main"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:minWidth="25px"
-            android:minHeight="25px">
-            <Button
-                android:id="@+id/zoomToLoc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Recenter" />
-            <Button
-                android:id="@+id/startTraining"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Start"
-                android:layout_marginRight="0.0dp" />
-            <fragment
-                android:id="@+id/map"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:name="com.google.android.gms.maps.MapFragment" />
-        </LinearLayout>
+
+            xmlns:android="http://schemas.android.com/apk/res/android" >
+
+        </RelativeLayout>
         <android.support.design.widget.NavigationView
             android:id="@+id/nav_view"
             android:layout_height="match_parent"
