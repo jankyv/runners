@@ -13,8 +13,13 @@ using Android.Widget;
 using Android.Gms.Maps;
 using Java.Lang;
 using Android.Gms.Maps.Model;
+using Android.Gms.Common;
 using static Android.Gms.Maps.GoogleMap;
 using Android.Locations;
+
+//using GoogleApi.Entities.Common.Enums;
+using GoogleApi.Entities.Maps.Roads.SnapToRoads.Request;
+//using GoogleApi.Exceptions;
 
 namespace runningapp
 {
@@ -89,8 +94,11 @@ namespace runningapp
             }
         }
 
-       
-        
+        public void SnapToRoadTest()
+        {
+
+        }
+
         public void ZoomToLocation(Location loc)
         {
             LatLng location = new LatLng(loc.Latitude, loc.Longitude);
