@@ -49,15 +49,8 @@ namespace runningapp
             List<PolylineOptions> list = new List<PolylineOptions>();
             for(int i = 0; i < tracks.Count; i++)
             {
-                PolylineOptions polylineOptions = new PolylineOptions().Clickable(false);
-                Track track = tracks[i];
-                for(int j = 0; j < track.LocationList.Count; j++)
-                {
-                    Location locaction = track.LocationList.ElementAt(j);
-                    LatLng l = new LatLng(locaction.Latitude, locaction.Longitude);
-                    polylineOptions.Add(l);
-                }
-                list.Add(polylineOptions);
+                Track track = tracks[i];             
+                list.Add(track.GetPolyLine());
             }
             return list;
         }

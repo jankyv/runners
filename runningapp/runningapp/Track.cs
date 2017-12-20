@@ -10,6 +10,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.Locations;
+using Android.Gms.Maps.Model;
 
 namespace runningapp
 {
@@ -19,14 +20,23 @@ namespace runningapp
 
         public List<Location> LocationList { get => locationList; set => locationList = value; }
 
+        private PolylineOptions polylineOptions;
+
         public Track()
         {
+            polylineOptions = new PolylineOptions().Clickable(false);
             LocationList = new List<Location>();
         }
 
         public void AddPoint(Location p)
         {
             LocationList.Add(p);
+            polylineOptions.Add(new LatLng(p.Latitude, p.Longitude));
+        }
+
+        public PolylineOptions GetPolyLine()
+        {   
+            return polylineOptions; 
         }
     }
 }
