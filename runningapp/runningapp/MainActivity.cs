@@ -83,8 +83,9 @@ namespace runningapp
                     {
                         /* Update locatie op de google map */ /// <see cref="UpdateLocationOnMap(Location)"/>
                         UpdateLocationOnMap(location);
-                    }
+                        mapFragment.ZoomToLocation(location);
                 }
+            }
                 else
                 {
                     Log.Info("LocationClient", "Client is niet verbonden");
@@ -120,7 +121,6 @@ namespace runningapp
         private void UpdateLocationOnMap(Location location)
         {
             mapFragment.DisplayLocation(location);
-            mapFragment.ZoomToLocation(location);
             _location = location;
         }
 
