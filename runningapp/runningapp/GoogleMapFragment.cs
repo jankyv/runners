@@ -61,19 +61,22 @@ namespace runningapp
             
 
             startButton.Click += delegate
-            {
-                if(startButton.Text == "Start")
-                {
-                    startButton.Text = "Stop";
-                }
-                else
-                {
-                    startButton.Text = "Start";
-                }
-                
+            {        
                 mListener.OnStartTrainingClick();
             };
 
+        }
+
+        public void ChangeStartButtonText()
+        {
+            if (startButton.Text == "Start")
+            {
+                startButton.Text = "Stop";
+            }
+            else
+            {
+                startButton.Text = "Start";
+            }
         }
 
         public void DisplayTraining(Training training)
@@ -86,30 +89,7 @@ namespace runningapp
             }
         }
 
-        public void DisplayLocation(Location loc)
-        {
-            LatLng l = new LatLng(loc.Latitude, loc.Longitude);
-
-            CircleOptions circleOptions = new CircleOptions()
-                .InvokeCenter(l)
-                .InvokeRadius(50); // In meters
-            if (googleMap != null)
-            {
-                if(circle != null)
-                {
-
-                    circle.Remove();
-                }
-                circle = googleMap.AddCircle(circleOptions);
-                circle.Radius = 200;
-            }
-            else
-            {
-                temp_location = l;
-            }
-           
-        }
-
+       
         
         public void ZoomToLocation(Location loc)
         {

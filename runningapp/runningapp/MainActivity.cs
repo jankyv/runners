@@ -2,7 +2,6 @@
 using Android.Widget;
 using Android.OS;
 using Android.Locations;
-using System;
 using Android.Support.V4.App;
 using Android.Support.V7.App;
 using Android.Support.V4.Widget;
@@ -10,11 +9,11 @@ using V7Toolbar = Android.Support.V7.Widget.Toolbar;
 using Android.Support.Design.Widget;
 using Android.Views;
 using Android.Gms.Location;
-using System.Threading.Tasks;
 using Android.Gms.Common.Apis;
 using Android.Gms.Common;
 using Android.Util;
-using Android.Gms.Maps.Model;
+using System;
+using Android.Content;
 
 namespace runningapp
 {
@@ -96,9 +95,47 @@ namespace runningapp
                     Log.Info("LocationClient", "Client is niet verbonden");
                 }
         }
+
+        private bool LocationEnabled()
+        {
+            LocationManager lm = (LocationManager)this.GetSystemService(LocationService);
+            bool gps_enabled = false;
+
+            try
+            {
+                gps_enabled = lm.IsProviderEnabled(LocationManager.GpsProvider);
+            }
+            catch (Exception ex) { }
+            return gps_enabled;
+        }
+
+        private void CheckLocationSettings()
+        {
+            
+
+            if (!LocationEnabled())
+            {
+                // notify user
+                Android.Support.V7.App.AlertDialog.Builder dialog = new Android.Support.V7.App.AlertDialog.Builder(this);
+                dialog.SetMessage("Location is not enabled");
+                dialog.SetPositiveButton("Location Settings", delegate
+                {
+                    Intent myIntent = new Intent(Android.Provider.Settings.ActionLocationSourceSettings);
+                    this.StartActivity(myIntent);
+                });
+
+                dialog.SetNegativeButton("Cancel", delegate {
+
+                });
+      
+                 dialog.Show();      
+            }
+        }
     
         // Asynchrone methode om locatie updates aan te vragen
         private async void RequestLocationUpdates() {
+
+            CheckLocationSettings();
             // als de apiClient is verbonden
             if (apiClient.IsConnected)
             {
@@ -126,7 +163,6 @@ namespace runningapp
         // Methode om de locatie op de map te updaten
         private void UpdateLocation(Location location)
         {
-            mapFragment.DisplayLocation(location);
             _location = location;
 
             if(recordingTraining == true)
@@ -223,7 +259,11 @@ namespace runningapp
         /* Interface */ /// <see cref="GoogleMapFragment.OnMapControlClick"/>
         public void OnRecenterClick()
         {
-            Toast.MakeText(this, "Recenter Clicked", ToastLength.Short).Show();
+            if (!LocationEnabled())
+            {
+                CheckLocationSettings();
+
+            }
 
             if (_location != null)
             {
@@ -231,6 +271,7 @@ namespace runningapp
             }
             else
             {
+                
                 Toast.MakeText(this, "Location not available", ToastLength.Short).Show();
             }
         }
@@ -238,25 +279,40 @@ namespace runningapp
         /* Interface */ /// <see cref="GoogleMapFragment.OnMapControlClick"/>
         public void OnStartTrainingClick()
         {
-            if (recordingTraining)
+            if (!LocationEnabled())
             {
-                training.Pause();
-                recordingTraining = false;
+                CheckLocationSettings();
             }
             else
             {
-                if(training != null)
+                if (recordingTraining)
                 {
-                    
-                    recordingTraining = true;
+                    training.Pause();
+                    recordingTraining = false;
+                    mapFragment.ChangeStartButtonText();
                 }
                 else
                 {
-                    training = new Training();
-                    recordingTraining = true;
+                    if (training != null)
+                    {
+
+                        recordingTraining = true;
+                        Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
+                        mapFragment.ChangeStartButtonText();
+
+                    }
+                    else
+                    {
+                        Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
+
+                        training = new Training();
+                        recordingTraining = true;
+                        mapFragment.ChangeStartButtonText();
+
+                    }
                 }
             }
-            Toast.MakeText(this, "Start Clicked", ToastLength.Short).Show();
+            
         }
 
 
