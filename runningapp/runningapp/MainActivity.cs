@@ -40,11 +40,16 @@ namespace runningapp
         //bool variabele om te controleren of google play services zijn geinstalleerd.
         bool _isGooglePlayServicesInstalled;
 
+        bool recordingTraining;
+
+        private Training training;
+
         // Override oncreate.
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Log.Debug("OnCreate", "OnCreate aangeroepen");
+            recordingTraining = false;
 
             // Set content view to layout Main.axml.
             SetContentView(Resource.Layout.Main);
@@ -82,7 +87,7 @@ namespace runningapp
                     if (location != null)
                     {
                         /* Update locatie op de google map */ /// <see cref="UpdateLocationOnMap(Location)"/>
-                        UpdateLocationOnMap(location);
+                        UpdateLocation(location);
                         mapFragment.ZoomToLocation(location);
                 }
             }
@@ -118,10 +123,20 @@ namespace runningapp
         }
 
         // Methode om de locatie op de map te updaten
-        private void UpdateLocationOnMap(Location location)
+        private void UpdateLocation(Location location)
         {
             mapFragment.DisplayLocation(location);
             _location = location;
+
+            if(recordingTraining == true)
+            {
+                training.AddPoint(location);
+            }
+           
+            if(training != null)
+            {
+                mapFragment.DisplayTraining(training);
+            }
         }
 
         //  Methode om fragments te weergeven
@@ -222,6 +237,23 @@ namespace runningapp
         /* Interface */ /// <see cref="GoogleMapFragment.OnMapControlClick"/>
         public void OnStartTrainingClick()
         {
+            if (recordingTraining)
+            {
+                training.Pause();
+                recordingTraining = false;
+            }
+            else
+            {
+                if(training != null)
+                {
+                    training = new Training();
+                    recordingTraining = true;
+                }
+                else
+                {
+                    recordingTraining = true;
+                }
+            }
             Toast.MakeText(this, "Start Clicked", ToastLength.Short).Show();
         }
 
@@ -254,7 +286,7 @@ namespace runningapp
         {
             Log.Debug("LocationClient", "Locatie veranderd");
 
-            UpdateLocationOnMap(location);
+            UpdateLocation(location);
         }
 
         /* Interface */ /// <see cref="GoogleApiClient.IConnectionCallbacks"/>

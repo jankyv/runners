@@ -62,9 +62,27 @@ namespace runningapp
 
             startButton.Click += delegate
             {
+                if(startButton.Text == "Start")
+                {
+                    startButton.Text = "Stop";
+                }
+                else
+                {
+                    startButton.Text = "Start";
+                }
+                
                 mListener.OnStartTrainingClick();
-
             };
+        }
+
+        public void DisplayTraining(Training training)
+        {
+            List<PolylineOptions> list = training.GetTrainingPolylines();
+
+            foreach(PolylineOptions l in list)
+            {
+                googleMap.AddPolyline(l);
+            }
         }
 
         public void DisplayLocation(Location loc)

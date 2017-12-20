@@ -15,16 +15,18 @@ namespace runningapp
 {
     class Track
     {
-        private int TrackId;
         private List<Location> locationList;
 
         public List<Location> LocationList { get => locationList; set => locationList = value; }
 
-        public void AddPoint(Location p)
+        public Track()
         {
             LocationList = new List<Location>();
+        }
+
+        public void AddPoint(Location p)
+        {
             LocationList.Add(p);
-            Console.WriteLine("GIT");
         }
     }
 }
