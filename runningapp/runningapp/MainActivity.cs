@@ -1,83 +1,130 @@
 ﻿using Android.App;
 using Android.Widget;
 using Android.OS;
-using Android.Gms.Maps;
-using Android.Content;
 using Android.Locations;
 using System;
-using Android.Runtime;
-using Android.Gms.Maps.Model;
 using Android.Support.V4.App;
-using Android;
-using Android.Content.PM;
 using Android.Support.V7.App;
 using Android.Support.V4.Widget;
 using V7Toolbar = Android.Support.V7.Widget.Toolbar;
 using Android.Support.Design.Widget;
 using Android.Views;
+using Android.Gms.Location;
+using System.Threading.Tasks;
+using Android.Gms.Common.Apis;
+using Android.Gms.Common;
 using Android.Util;
-using System.Collections.Generic;
+using Android.Gms.Maps.Model;
 
 namespace runningapp
 {
     [Activity(Label = "runningapp", MainLauncher = true, Theme = "@style/Theme.DesignDemo")]
-    public class MainActivity : AppCompatActivity, ILocationListener, GoogleMapFragment.OnMapControlClick
-    {
-        // Location manager
-        protected LocationManager _locationManager = (LocationManager)Application.Context.GetSystemService(LocationService);
+    public class MainActivity : AppCompatActivity, 
+                                    GoogleMapFragment.OnMapControlClick, 
+                                    GoogleApiClient.IConnectionCallbacks,
+                                    GoogleApiClient.IOnConnectionFailedListener, 
+                                    Android.Gms.Location.ILocationListener
 
-        // Location variable
+    {
         private Location _location;
 
-        //Training
-        Training training;
-
-      
-
-        private bool recording = false;
-
-
-
-
-        // Static variables
-        private static Accuracy ACCURACY = Accuracy.Fine;
-        private static Power POWER = Power.Medium;
-        private static int ZOOM = 20;
-        private static int MAPSIZE = 65;
+        // Layout variabelen.
         private DrawerLayout drawerLayout;
         private NavigationView navigationView;
         private GoogleMapFragment mapFragment;
 
+        // Google location api variabelen.
+        GoogleApiClient apiClient;
+        LocationRequest locRequest;
 
-        // Override OnCreate
+        //bool variabele om te controleren of google play services zijn geinstalleerd.
+        bool _isGooglePlayServicesInstalled;
+
+        // Override oncreate.
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            Log.Debug("OnCreate", "OnCreate aangeroepen");
 
-            // Set Content View to layout Main.axml
+            // Set content view to layout Main.axml.
             SetContentView(Resource.Layout.Main);
 
-          
-
-            // Set up the side menu
+            /* Opzetten van side menu. */ /// <see cref="SetUpSideMenu()"/>
             SetUpSideMenu();
 
+            /* Opzetten en weergeven van GoogleMapFragment */ /// <see cref="GoogleMapFragment.cs"/> 
             mapFragment = new GoogleMapFragment();
+
+            /* Weergeven van GoogleMapFragment d.m.v. methode */ /// <see cref="ShowFragment(Android.App.Fragment)"/>
             ShowFragment(mapFragment);
 
-            StartLocationUpdates();
-
-            
+            /* Controleer of de Google api's aanwezig zijn op het apparaat, zo niet, installeer ze */ /// <see cref="CheckAndInstallGoogleApi()"/>
+            CheckAndInstallGoogleApi();
         }
 
-        // Start location updates again OnResume 
+        // Override onresume.
         protected override void OnResume()
         {
             base.OnResume();
-            StartLocationUpdates();
+            Log.Debug("OnResume", "OnResume aangeroepen, verbinden met locationApi client");
+
+            // Verbind de apiClient
+            apiClient.Connect();
         }
 
-        // Method to show Fragment
+        // Methode om de laatst bekende locatie van het apparaat te verkrijgen
+        private void GetLastLocation()
+        {      
+                // als de apiClient is verbonden
+                if (apiClient.IsConnected)
+                {
+                    Location location = LocationServices.FusedLocationApi.GetLastLocation(apiClient);
+                    if (location != null)
+                    {
+                        /* Update locatie op de google map */ /// <see cref="UpdateLocationOnMap(Location)"/>
+                        UpdateLocationOnMap(location);
+                    }
+                }
+                else
+                {
+                    Log.Info("LocationClient", "Client is niet verbonden");
+                }
+        }
+    
+        // Asynchrone methode om locatie updates aan te vragen
+        private async void RequestLocationUpdates() {
+            // als de apiClient is verbonden
+            if (apiClient.IsConnected)
+            {
+
+                // Prioriteit naar 100 zetten (Hoog)
+                locRequest.SetPriority(100);
+
+                // Interval en snelste interval instellen in milliseconden
+                locRequest.SetFastestInterval(500);
+                locRequest.SetInterval(1000);
+
+                Log.Debug("LocationRequest", "Request prioriteit ingesteld op {0}, interval ingesteld op {1} ms",
+                    locRequest.Priority.ToString(), locRequest.Interval.ToString());
+
+                // "await" locatie updates --> OnLocationChanged wordt aangeroepen zodra de locatie veranderd is
+                await LocationServices.FusedLocationApi.RequestLocationUpdates(apiClient, locRequest, this);
+            }
+            else
+            {
+                Log.Info("LocationClient", "Please wait for Client to connect");
+            }
+        }
+
+        // Methode om de locatie op de map te updaten
+        private void UpdateLocationOnMap(Location location)
+        {
+            mapFragment.DisplayLocation(location);
+            mapFragment.ZoomToLocation(location);
+            _location = location;
+        }
+
+        //  Methode om fragments te weergeven
         private void ShowFragment(Android.App.Fragment fragment)
         {
             Android.App.FragmentTransaction fragmentTransaction = FragmentManager.BeginTransaction();
@@ -86,13 +133,53 @@ namespace runningapp
                     .Commit();
         }
 
-        
+        // Methode om te ontroleren of de Google api's aanwezig zijn op het apparaat, zo niet, installeer ze
+        private void CheckAndInstallGoogleApi()
+        {
+            _isGooglePlayServicesInstalled = IsGooglePlayServicesInstalled();
 
-        // Method to sey up the side menu (SIDEMENU)
+            if (_isGooglePlayServicesInstalled)
+            {
+                // pass in the Context, ConnectionListener and ConnectionFailedListener
+                apiClient = new GoogleApiClient.Builder(this, this, this)
+                    .AddApi(LocationServices.API).Build();
+
+                // generate a location request that we will pass into a call for location updates
+                locRequest = new LocationRequest();
+                Log.Info("MainActivity", "apiClient created");
+            }
+            else
+            {
+                Log.Error("OnCreate", "Google Play Services is not installed");
+                Toast.MakeText(this, "Google Play Services is not installed", ToastLength.Long).Show();
+                Finish();
+            }
+        }
+
+        // Metohde om te controleren of de Google Api's op het apparaat zijn geinstalleerd
+        bool IsGooglePlayServicesInstalled()
+        {
+            int queryResult = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable(this);
+            if (queryResult == ConnectionResult.Success)
+            {
+                Log.Info("MainActivity", "Google Play Services is installed on this device.");
+                return true;
+            }
+
+            if (GoogleApiAvailability.Instance.IsUserResolvableError(queryResult))
+            {
+                string errorString = GoogleApiAvailability.Instance.GetErrorString(queryResult);
+                Log.Error("ManActivity", "There is a problem with Google Play Services on this device: {0} - {1}", queryResult, errorString);
+
+                // Show error dialog to let user debug google play services
+            }
+            return false;
+        }
+
+        // Methode om het menu op te zetten
         private void SetUpSideMenu()
         {
             drawerLayout = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-            // Create ActionBarDrawerToggle button and add it to the toolbar  
             var toolbar = FindViewById<V7Toolbar>(Resource.Id.toolbar);
             SetSupportActionBar(toolbar);
             var drawerToggle = new Android.Support.V7.App.ActionBarDrawerToggle(this, drawerLayout, toolbar, Resource.String.drawer_open, Resource.String.drawer_close);
@@ -100,7 +187,7 @@ namespace runningapp
             SetupDrawerContent(navigationView); //Calling Function  
         }
 
-        // Method to set up the drawer content (SIDEMENU)
+        // Metgode om de navigatie op te zetten
         private void SetupDrawerContent(NavigationView navigationView)
         {
             navigationView.NavigationItemSelected += (sender, e) =>
@@ -110,124 +197,70 @@ namespace runningapp
             };
         }
 
-        // Override OnCreateOptionsMenu to implement side menu (SIDEMENU)
+        // Override OnCreateOptionsMenu
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
             navigationView.InflateMenu(Resource.Menu.nav_menu);
             return true;
         }
 
-        
-
-       
-
-        
-
-        // Method to start requesting location updates (LOCATION)
-        public void StartLocationUpdates()
-        {
-            Criteria criteriaForGPSService = new Criteria
-            {
-                Accuracy = ACCURACY,
-                PowerRequirement = POWER
-            };
-
-            CheckLocationSettings();
-            var locationProvider = _locationManager.GetBestProvider(criteriaForGPSService, true);
-            Location currentLocation = _locationManager.GetLastKnownLocation(locationProvider);
-            _location = currentLocation;
-            _locationManager.RequestLocationUpdates(locationProvider, 0, 0, this);
-        }
-
-        // Method to check the location settings, if disabled Build Alertdialog to prompt user to enable location, if enabled, do nothing (LOCATION)
-        private void CheckLocationSettings()
-        {
-            if (!_locationManager.IsProviderEnabled(LocationManager.GpsProvider))
-            {
-                //set alert for executing the task
-                Android.App.AlertDialog.Builder alert = new Android.App.AlertDialog.Builder(this);
-                alert.SetTitle("Location Settings");
-                alert.SetMessage("Location is required");
-                alert.SetPositiveButton("Settings", (senderAlert, args) => {
-                    
-                    this.StartActivity(new Android.Content.Intent(Android.Provider.Settings.ActionLocationSourceSettings));
-                    
-                });
-
-                alert.SetNegativeButton("Cancel", (senderAlert, args) => {
-                    Toast.MakeText(this, "Cancelled!", ToastLength.Short).Show();
-
-                });
-
-                Dialog dialog = alert.Create();
-                dialog.Show();
-            }
-        }
-
-        // OnLocationChanged to implement ILocationListener Class (LOCATION)
-        public void OnLocationChanged(Location location)
-        {
-            _location = location;
-            if (recording == true)
-            {
-                training.AddPoint(location);
-                Toast.MakeText(this, "Locatie: " + location.ToString() + " toegevoegd aan: " + training.CurrentTrack().LocationList.ToString(), ToastLength.Short).Show();
-            }
-
-            Console.WriteLine(training.Tracks.ToString());
-
-        }
-
-        // OnProviderDisabled to implement ILocationListener Class (LOCATION)
-        public void OnProviderDisabled(string provider)
-        {
-            if (!_locationManager.IsProviderEnabled(LocationManager.GpsProvider))
-            {
-                //set alert for executing the task
-                Android.App.AlertDialog.Builder alert = new Android.App.AlertDialog.Builder(this);
-                alert.SetTitle("Location Settings");
-                alert.SetMessage("Location is required");
-                alert.SetPositiveButton("Settings", (senderAlert, args) => {
-                    this.StartActivity(new Android.Content.Intent(Android.Provider.Settings.ActionLocationSourceSettings));
-                });
-
-                alert.SetNegativeButton("Cancel", (senderAlert, args) => {
-                    Toast.MakeText(this, "Cancelled!", ToastLength.Short).Show();
-
-                });
-
-                Dialog dialog = alert.Create();
-                dialog.Show();
-            }
-        }
-
-        // OnProviderEnabled to implement ILocationListener Class (LOCATION)
-        public void OnProviderEnabled(string provider)
-        {
-            //StartLocationUpdates();
-        }
-
-        //OnStatusChanged to implement ILocationListener Class (LOCATION)
-        public void OnStatusChanged(string provider, [GeneratedEnum] Availability status, Bundle extras)
-        {
-
-        }
-
+        /* Interface */ /// <see cref="GoogleMapFragment.OnMapControlClick"/>
         public void OnRecenterClick()
-        {          
+        {
             Toast.MakeText(this, "Recenter Clicked", ToastLength.Short).Show();
-            //mapFragment.DisplayLocation(ToLatLng(_location));
-            mapFragment.ZoomToLocation(ToLatLng(_location));
+
+            if (_location != null)
+            {
+                mapFragment.ZoomToLocation(_location);
+            }
+            else
+            {
+                Toast.MakeText(this, "Location not available", ToastLength.Short).Show();
+            }
         }
 
+        /* Interface */ /// <see cref="GoogleMapFragment.OnMapControlClick"/>
         public void OnStartTrainingClick()
         {
-            Toast.MakeText(this, "Start Clicked", ToastLength.Short);
+            Toast.MakeText(this, "Start Clicked", ToastLength.Short).Show();
         }
 
-        private LatLng ToLatLng(Location l)
+
+        /* Interface */ /// <see cref="GoogleApiClient.IConnectionCallbacks"/>
+        public void OnConnected(Bundle bundle)
         {
-            return new LatLng(l.Latitude, l.Longitude);
+            /* Vraag de laats bekende locatie op */ /// <see cref="GetLastLocation()"/>
+            GetLastLocation();
+
+            /* Vraag locatie updates aan */ /// <see cref="RequestLocationUpdates()"/>
+            RequestLocationUpdates();
+            Log.Info("LocationClient", "Verbonden met GoogleApi client");
+        }
+
+        /* Interface */ /// <see cref="GoogleApiClient.IConnectionCallbacks"/>
+        public void OnDisconnected()
+        {        
+            Log.Info("LocationClient", "Verbinding met GoogleApi client verbroken");
+        }
+
+        /* Interface */ /// <see cref="GoogleApiClient.IOnConnectionFailedListener"/>
+        public void OnConnectionFailed(ConnectionResult bundle)
+        {     
+            Log.Info("LocationClient", "Verbinden met GoogleApi clien mislukt");
+        }
+
+        /* Interface */ /// <see cref="Android.Gms.Location.ILocationListener"/>
+        public void OnLocationChanged(Location location)
+        {
+            Log.Debug("LocationClient", "Locatie veranderd");
+
+            UpdateLocationOnMap(location);
+        }
+
+        /* Interface */ /// <see cref="GoogleApiClient.IConnectionCallbacks"/>
+        public void OnConnectionSuspended(int i)
+        {
+
         }
     }
 }

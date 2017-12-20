@@ -13,16 +13,18 @@ using Android.Widget;
 using Android.Gms.Maps;
 using Java.Lang;
 using Android.Gms.Maps.Model;
+using static Android.Gms.Maps.GoogleMap;
+using Android.Locations;
 
 namespace runningapp
 {
-    public class GoogleMapFragment : Fragment, IOnMapReadyCallback
+    public class GoogleMapFragment : Fragment, IOnMapReadyCallback, IOnCameraChangeListener
     {
         private MapView mMapView;
         private GoogleMap googleMap;
 
 
-        private static int ZOOM = 20;
+        private static int ZOOM = 14;
         private DisplayMetrics metrics;
         private Button recenter;
         private LinearLayout contentLayout;
@@ -30,29 +32,30 @@ namespace runningapp
 
         private Button startButton;
         private OnMapControlClick mListener;
+        LatLng temp_location;
+        private Circle circle;
 
 
-
-        //Method to set up the variables and handlers (LAYOUT)
+        
         private void SetUpVariables()
         {
            
             metrics = Resources.DisplayMetrics;
             contentLayout = Activity.FindViewById<LinearLayout>(Resource.Id.content_layout);
             mapsLayout = Activity.FindViewById<RelativeLayout>(Resource.Id.maps_layout);
-            mapsLayout.LayoutParameters.Height = (int)(0.9 * metrics.HeightPixels);
+            
             recenter = Activity.FindViewById<Button>(Resource.Id.zoomToLoc);
 
             startButton = Activity.FindViewById<Button>(Resource.Id.startTraining);
-            contentLayout.LayoutParameters.Height = (int)(0.1 * metrics.HeightPixels);
+            contentLayout.LayoutParameters.Height = ViewGroup.LayoutParams.WrapContent;
             recenter.LayoutParameters.Width = (int)(0.5 * metrics.WidthPixels);
             startButton.LayoutParameters.Width = (int)(0.5 * metrics.WidthPixels);
+            mapsLayout.LayoutParameters.Height = (int)(metrics.HeightPixels - contentLayout.LayoutParameters.Height);
 
 
 
             recenter.Click += delegate
             {
-                Console.WriteLine("delegate is called");    
                 mListener.OnRecenterClick();
             };
             
@@ -64,10 +67,34 @@ namespace runningapp
             };
         }
 
-        // Method to zoom to current location in Google Map (GOOGLEMAP)
-        public void ZoomToLocation(LatLng location)
+        public void DisplayLocation(Location loc)
         {
-            
+            LatLng l = new LatLng(loc.Latitude, loc.Longitude);
+
+            CircleOptions circleOptions = new CircleOptions()
+                .InvokeCenter(l)
+                .InvokeRadius(50); // In meters
+            if (googleMap != null)
+            {
+                if(circle != null)
+                {
+
+                    circle.Remove();
+                }
+                circle = googleMap.AddCircle(circleOptions);
+                circle.Radius = 200;
+            }
+            else
+            {
+                temp_location = l;
+            }
+           
+        }
+
+        
+        public void ZoomToLocation(Location loc)
+        {
+            LatLng location = new LatLng(loc.Latitude, loc.Longitude);
             CameraPosition.Builder builder = CameraPosition.InvokeBuilder();
             builder.Target(location);
             builder.Zoom(ZOOM);
@@ -107,7 +134,7 @@ namespace runningapp
             mMapView = (MapView)rootView.FindViewById(Resource.Id.mapView);
             mMapView.OnCreate(savedInstanceState);
 
-            mMapView.OnResume(); // needed to get the map to display immediately
+            mMapView.OnResume(); 
 
             try
             {
@@ -129,10 +156,9 @@ namespace runningapp
         {
             googleMap = mMap;
 
-            // For showing a move to my location button
+            
             googleMap.MyLocationEnabled = false;
-
-           
+            googleMap.SetOnCameraChangeListener(this);
          
         }
 
@@ -162,14 +188,19 @@ namespace runningapp
             mMapView.OnLowMemory();
         }
 
-
+        public void OnCameraChange(CameraPosition position)
+        {
+            if(circle != null)
+            {
+                circle.Radius = 100;
+                
+            }
+        }
 
         public interface OnMapControlClick
         {
             void OnRecenterClick();
             void OnStartTrainingClick();
-        }
-
-        
+        } 
     }
 }
