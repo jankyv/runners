@@ -13,7 +13,7 @@ using Android.Locations;
 
 namespace runningapp
 {
-    class Track
+    public class Track
     {
         private List<Location> locationList;
 

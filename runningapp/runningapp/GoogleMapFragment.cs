@@ -24,7 +24,7 @@ namespace runningapp
         private GoogleMap googleMap;
 
 
-        private static int ZOOM = 14;
+        private static int ZOOM = 18;
         private DisplayMetrics metrics;
         private Button recenter;
         private LinearLayout contentLayout;
@@ -73,6 +73,7 @@ namespace runningapp
                 
                 mListener.OnStartTrainingClick();
             };
+
         }
 
         public void DisplayTraining(Training training)
@@ -164,6 +165,10 @@ namespace runningapp
             }
 
             mMapView.GetMapAsync(this);
+            // Get the button view 
+            View par = ((View)mMapView.FindViewById(1).Parent);
+            View LocationButton = par.FindViewById(2);
+            LocationButton.LayoutParameters.Height = 0;
             return rootView;
         }
 
@@ -175,8 +180,8 @@ namespace runningapp
             googleMap = mMap;
 
             
-            googleMap.MyLocationEnabled = false;
-            googleMap.SetOnCameraChangeListener(this);
+            googleMap.MyLocationEnabled = true;
+           // googleMap.SetOnCameraChangeListener(this);
          
         }
 

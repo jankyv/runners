@@ -104,7 +104,8 @@ namespace runningapp
             {
 
                 // Prioriteit naar 100 zetten (Hoog)
-                locRequest.SetPriority(100);
+                locRequest.SetPriority(LocationRequest.PriorityHighAccuracy);
+                
 
                 // Interval en snelste interval instellen in milliseconden
                 locRequest.SetFastestInterval(500);
@@ -246,11 +247,12 @@ namespace runningapp
             {
                 if(training != null)
                 {
-                    training = new Training();
+                    
                     recordingTraining = true;
                 }
                 else
                 {
+                    training = new Training();
                     recordingTraining = true;
                 }
             }
