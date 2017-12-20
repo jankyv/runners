@@ -303,7 +303,7 @@ namespace runningapp
                     }
                     else
                     {
-                        Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
+                        Toast.MakeText(this, "Training Started", ToastLength.Short).Show();
 
                         training = new Training();
                         recordingTraining = true;
