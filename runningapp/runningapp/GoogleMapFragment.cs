@@ -18,16 +18,18 @@ using Android.Locations;
 using System.Drawing;
 using Android.Content.Res;
 using Android.Animation;
+using System.Diagnostics;
+using System.Timers;
 
 namespace runningapp
 {
-    public class GoogleMapFragment : Fragment, IOnMapReadyCallback, IOnCameraChangeListener
+    public class GoogleMapFragment : Fragment, IOnMapReadyCallback
     {
         private MapView mMapView;
         private GoogleMap googleMap;
 
 
-        private static int ZOOM = 18;
+        private static int ZOOM = 15;
         private DisplayMetrics metrics;
         private Button recenter;
         private ImageButton stopButton;
@@ -35,7 +37,7 @@ namespace runningapp
         private RelativeLayout mapsLayout;
 
         private ImageButton startButton;
-        private OnMapControlClick mListener;
+        private IOnMapControlClick mListener;
         private PolylineOptions currentTrainingLine;
         private Circle circle;
 
@@ -43,13 +45,22 @@ namespace runningapp
         private LinearLayout rightLayout;
 
         private LinearLayout container;
+        private TextView stopWatchText;
+        private LinearLayout bottomLayout;
+        private RelativeLayout masterLayout;
+        private TextView distanceText;
+        private Timer timer;
+        int hour, min, sec;
+
 
         private bool inTraining;
+        public bool firstStart;
 
         private void SetUpVariables()
         {
+            ResetTimer();
             inTraining = false;
-            bool firstStart = true;
+            firstStart = true;
             metrics = Resources.DisplayMetrics;
             contentLayout = Activity.FindViewById<LinearLayout>(Resource.Id.content_layout);
             mapsLayout = Activity.FindViewById<RelativeLayout>(Resource.Id.maps_layout);
@@ -63,12 +74,23 @@ namespace runningapp
             leftLayout = Activity.FindViewById<LinearLayout>(Resource.Id.layout_left);
             rightLayout = Activity.FindViewById<LinearLayout>(Resource.Id.layout_left);
             stopButton = Activity.FindViewById<ImageButton>(Resource.Id.stopTraining);
+            distanceText = Activity.FindViewById<TextView>(Resource.Id.distanceText);
+            
+            stopWatchText = Activity.FindViewById<TextView>(Resource.Id.stopWatchView);
+            bottomLayout = Activity.FindViewById<LinearLayout>(Resource.Id.stats_layout);
 
+            masterLayout = Activity.FindViewById<RelativeLayout>(Resource.Id.master_layout);
+            masterLayout.RemoveView(bottomLayout);
 
+            
 
             LayoutToStart();
 
 
+            timer = new Timer();
+            timer.Interval = 1000;
+            timer.Elapsed += Timer_Elapsed;
+            
 
             recenter.Click += delegate
             {
@@ -83,6 +105,7 @@ namespace runningapp
                     LayoutPaused();
                     mListener.OnPauseTrainingClick();
                     inTraining = false;
+                    timer.Stop();
                 }
                 else
                 {
@@ -91,31 +114,55 @@ namespace runningapp
                         LayoutTraining();
                         mListener.OnStartTrainingClick();
                         inTraining = true;
-                        firstStart = false;
+                        masterLayout.AddView(bottomLayout);
+                        timer.Start();
+
                     }
                     else
                     {
                         LayoutTraining();
                         mListener.OnResumeTrainingClick();
                         inTraining = true;
+                        timer.Start();
                     }
                    
                 }
             };
 
             stopButton.Click += delegate {
-                mListener.OnStartTrainingClick();
-                firstStart = true;
+                mListener.OnStopTrainingClick();
             };
 
 
+        }
+
+        private void ResetTimer()
+        {
+            hour = 0;
+            min = 0;
+            sec = 0;
+        }
+
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            sec++;
+            if (sec == 60)
+            {
+                min++;
+                sec = 0;
+            }
+            if (min == 60)
+            {
+                hour++;
+                min = 0;
+            }
+            Activity.RunOnUiThread(() => stopWatchText.Text = hour + " : " + min + " : " + sec);
         }
 
         private void LayoutToStart()
         {
             leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 2f);
             startButton.SetImageResource(Resource.Mipmap.ic_play_arrow_black_24dp);
-
            
 
         }
@@ -157,7 +204,7 @@ namespace runningapp
         public void StartViewTraining()
         {
             currentTrainingLine = new PolylineOptions();
-            currentTrainingLine.InvokeWidth(15);
+            currentTrainingLine.InvokeWidth(20);
             currentTrainingLine.InvokeColor(Resource.Color.secondary_color);
         }
 
@@ -166,6 +213,11 @@ namespace runningapp
             currentTrainingLine.Add(new LatLng(location.Latitude, location.Longitude));
             googleMap.AddPolyline(currentTrainingLine);
             
+        }
+
+        public void SetDistanceText(float d)
+        {
+            distanceText.Text = Java.Lang.String.ValueOf(d);
         }
 
        
@@ -194,7 +246,7 @@ namespace runningapp
         public override void OnAttach(Activity context)
         {
             base.OnAttach(context);
-            mListener = (OnMapControlClick)context;        
+            mListener = (IOnMapControlClick)context;        
         }
 
         public override void OnDetach()
@@ -287,16 +339,9 @@ namespace runningapp
             mMapView.OnLowMemory();
         }
 
-        public void OnCameraChange(CameraPosition position)
-        {
-            if(circle != null)
-            {
-                circle.Radius = 100;
-                
-            }
-        }
+     
 
-        public interface OnMapControlClick
+        public interface IOnMapControlClick
         {
             void OnRecenterClick();
             void OnStartTrainingClick();

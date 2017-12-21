@@ -3,9 +3,7 @@ using Android.Widget;
 using Android.OS;
 using Android.Locations;
 using Android.Support.V4.App;
-using Android.Support.V7.App;
 using Android.Support.V4.Widget;
-using V7Toolbar = Android.Support.V7.Widget.Toolbar;
 using Android.Support.Design.Widget;
 using Android.Views;
 using Android.Gms.Location;
@@ -14,12 +12,13 @@ using Android.Gms.Common;
 using Android.Util;
 using System;
 using Android.Content;
+using Android.Support.V7.App;
 
 namespace runningapp
 {
     [Activity(Label = "runningapp", MainLauncher = true, Theme = "@style/Theme.DesignDemo")]
     public class MainActivity : AppCompatActivity, 
-                                    GoogleMapFragment.OnMapControlClick, 
+                                    GoogleMapFragment.IOnMapControlClick, 
                                     GoogleApiClient.IConnectionCallbacks,
                                     GoogleApiClient.IOnConnectionFailedListener, 
                                     Android.Gms.Location.ILocationListener
@@ -54,7 +53,6 @@ namespace runningapp
             SetContentView(Resource.Layout.Main);
 
             /* Opzetten van side menu. */ /// <see cref="SetUpSideMenu()"/>
-            SetUpSideMenu();
 
             /* Opzetten en weergeven van GoogleMapFragment */ /// <see cref="GoogleMapFragment.cs"/> 
             mapFragment = new GoogleMapFragment();
@@ -145,8 +143,8 @@ namespace runningapp
                 
 
                 // Interval en snelste interval instellen in milliseconden
-                locRequest.SetFastestInterval(500);
-                locRequest.SetInterval(1000);
+                locRequest.SetFastestInterval(1500);
+                locRequest.SetInterval(3000);
 
                 Log.Debug("LocationRequest", "Request prioriteit ingesteld op {0}, interval ingesteld op {1} ms",
                     locRequest.Priority.ToString(), locRequest.Interval.ToString());
@@ -169,6 +167,7 @@ namespace runningapp
             {
                 training.AddPoint(location);
                 mapFragment.AddPolylinePoint(location);
+                mapFragment.SetDistanceText(training.GetCurrentDistance());
             }
            
             
@@ -226,16 +225,7 @@ namespace runningapp
             return false;
         }
 
-        // Methode om het menu op te zetten
-        private void SetUpSideMenu()
-        {
-            drawerLayout = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
-            var toolbar = FindViewById<V7Toolbar>(Resource.Id.toolbar);
-            SetSupportActionBar(toolbar);
-            var drawerToggle = new Android.Support.V7.App.ActionBarDrawerToggle(this, drawerLayout, toolbar, Resource.String.drawer_open, Resource.String.drawer_close);
-            navigationView = FindViewById<NavigationView>(Resource.Id.nav_view);
-            SetupDrawerContent(navigationView); //Calling Function  
-        }
+       
 
         // Metgode om de navigatie op te zetten
         private void SetupDrawerContent(NavigationView navigationView)
@@ -274,9 +264,11 @@ namespace runningapp
             }
         }
 
-        /* Interface */ /// <see cref="GoogleMapFragment.OnMapControlClick"/>
+        /* Interface */ /// <see cref="GoogleMapFragment.IOnMapControlClick"/>
         public void OnStartTrainingClick()
         {
+            mapFragment.firstStart = false;
+
             if (!LocationEnabled())
             {
                 CheckLocationSettings();
@@ -293,7 +285,7 @@ namespace runningapp
                         training = new Training();
                         mapFragment.StartViewTraining();
                         recordingTraining = true;
-
+                        
                     
                 }
             }
@@ -352,6 +344,8 @@ namespace runningapp
         public void OnStopTrainingClick()
         {
             Toast.MakeText(this, "Training Stopped (nog geen functie)", ToastLength.Short).Show();
+            //mapFragment.firstStart = true;
+
         }
 
         public void OnResumeTrainingClick()

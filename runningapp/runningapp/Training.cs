@@ -11,6 +11,7 @@ using Android.Views;
 using Android.Widget;
 using Android.Locations;
 using Android.Gms.Maps.Model;
+using Android.Util;
 
 namespace runningapp
 {
@@ -18,9 +19,11 @@ namespace runningapp
     {
         private List<Track> tracks;
         private int trackCount;
+        
 
         public Training()
         {
+            Log.Info("Training" , "Training is made");
             Tracks = new List<Track>();
             Tracks.Add(new Track());
             trackCount = 0;
@@ -37,6 +40,15 @@ namespace runningapp
         {
             Tracks.Add(new Track());
             trackCount++;
+        }
+
+        public float GetCurrentDistance()
+        {
+            float d = 0;
+            foreach(Track track in tracks){
+                d += track.Distance;
+            }
+            return d;
         }
 
         public Track CurrentTrack()
