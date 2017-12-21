@@ -168,12 +168,10 @@ namespace runningapp
             if(recordingTraining == true)
             {
                 training.AddPoint(location);
+                mapFragment.AddPolylinePoint(location);
             }
            
-            if(training != null)
-            {
-                mapFragment.DisplayTraining(training);
-            }
+            
         }
 
         //  Methode om fragments te weergeven
@@ -285,34 +283,32 @@ namespace runningapp
             }
             else
             {
-                if (recordingTraining)
+                
+                if(!recordingTraining)
                 {
-                    training.Pause();
-                    recordingTraining = false;
-                    mapFragment.ChangeStartButtonText();
-                }
-                else
-                {
-                    if (training != null)
-                    {
-
-                        recordingTraining = true;
-                        Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
-                        mapFragment.ChangeStartButtonText();
-
-                    }
-                    else
-                    {
+                    
+                    
                         Toast.MakeText(this, "Training Started", ToastLength.Short).Show();
 
                         training = new Training();
+                        mapFragment.StartViewTraining();
                         recordingTraining = true;
-                        mapFragment.ChangeStartButtonText();
 
-                    }
+                    
                 }
             }
             
+        }
+
+        public void OnPauseTrainingClick()
+        {
+            Toast.MakeText(this, "Training Paused", ToastLength.Short).Show();
+
+            if (recordingTraining)
+            {
+                training.Pause();
+                recordingTraining = false;
+            }
         }
 
 
@@ -351,6 +347,22 @@ namespace runningapp
         public void OnConnectionSuspended(int i)
         {
 
+        }
+
+        public void OnStopTrainingClick()
+        {
+            Toast.MakeText(this, "Training Stopped (nog geen functie)", ToastLength.Short).Show();
+        }
+
+        public void OnResumeTrainingClick()
+        {
+            if (training != null)
+            {
+
+                recordingTraining = true;
+                Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
+
+            }
         }
     }
 }

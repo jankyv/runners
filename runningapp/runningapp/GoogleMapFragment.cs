@@ -15,6 +15,9 @@ using Java.Lang;
 using Android.Gms.Maps.Model;
 using static Android.Gms.Maps.GoogleMap;
 using Android.Locations;
+using System.Drawing;
+using Android.Content.Res;
+using Android.Animation;
 
 namespace runningapp
 {
@@ -27,30 +30,43 @@ namespace runningapp
         private static int ZOOM = 18;
         private DisplayMetrics metrics;
         private Button recenter;
+        private ImageButton stopButton;
         private LinearLayout contentLayout;
         private RelativeLayout mapsLayout;
 
-        private Button startButton;
+        private ImageButton startButton;
         private OnMapControlClick mListener;
-        LatLng temp_location;
+        private PolylineOptions currentTrainingLine;
         private Circle circle;
 
+        private LinearLayout leftLayout;
+        private LinearLayout rightLayout;
 
-        
+        private LinearLayout container;
+
+        private bool inTraining;
+
         private void SetUpVariables()
         {
-           
+            inTraining = false;
+            bool firstStart = true;
             metrics = Resources.DisplayMetrics;
             contentLayout = Activity.FindViewById<LinearLayout>(Resource.Id.content_layout);
             mapsLayout = Activity.FindViewById<RelativeLayout>(Resource.Id.maps_layout);
             
             recenter = Activity.FindViewById<Button>(Resource.Id.zoomToLoc);
 
-            startButton = Activity.FindViewById<Button>(Resource.Id.startTraining);
+            startButton = Activity.FindViewById<ImageButton>(Resource.Id.startTraining);
             contentLayout.LayoutParameters.Height = ViewGroup.LayoutParams.WrapContent;
-            recenter.LayoutParameters.Width = (int)(0.5 * metrics.WidthPixels);
-            startButton.LayoutParameters.Width = (int)(0.5 * metrics.WidthPixels);
+            
             mapsLayout.LayoutParameters.Height = (int)(metrics.HeightPixels - contentLayout.LayoutParameters.Height);
+            leftLayout = Activity.FindViewById<LinearLayout>(Resource.Id.layout_left);
+            rightLayout = Activity.FindViewById<LinearLayout>(Resource.Id.layout_left);
+            stopButton = Activity.FindViewById<ImageButton>(Resource.Id.stopTraining);
+
+
+
+            LayoutToStart();
 
 
 
@@ -58,26 +74,75 @@ namespace runningapp
             {
                 mListener.OnRecenterClick();
             };
-            
 
             startButton.Click += delegate
-            {        
-                mListener.OnStartTrainingClick();
+            {
+              
+                if (inTraining)
+                {
+                    LayoutPaused();
+                    mListener.OnPauseTrainingClick();
+                    inTraining = false;
+                }
+                else
+                {
+                    if (firstStart)
+                    {
+                        LayoutTraining();
+                        mListener.OnStartTrainingClick();
+                        inTraining = true;
+                        firstStart = false;
+                    }
+                    else
+                    {
+                        LayoutTraining();
+                        mListener.OnResumeTrainingClick();
+                        inTraining = true;
+                    }
+                   
+                }
             };
 
+            stopButton.Click += delegate {
+                mListener.OnStartTrainingClick();
+                firstStart = true;
+            };
+
+
         }
 
-        public void ChangeStartButtonText()
+        private void LayoutToStart()
         {
-            if (startButton.Text == "Start")
-            {
-                startButton.Text = "Stop";
-            }
-            else
-            {
-                startButton.Text = "Start";
-            }
+            leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 2f);
+            startButton.SetImageResource(Resource.Mipmap.ic_play_arrow_black_24dp);
+
+           
+
         }
+
+        private void LayoutPaused()
+        {
+
+            leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 1f);
+            leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 1f);
+
+            startButton.SetImageResource(Resource.Mipmap.ic_play_arrow_black_24dp);
+            
+
+            
+
+
+        }
+
+        private void LayoutTraining()
+        {
+            leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 2f);
+            startButton.SetImageResource(Resource.Mipmap.ic_pause_black_24dp);
+
+
+        }
+
+
 
         public void DisplayTraining(Training training)
         {
@@ -87,6 +152,20 @@ namespace runningapp
             {
                 googleMap.AddPolyline(l);
             }
+        }
+
+        public void StartViewTraining()
+        {
+            currentTrainingLine = new PolylineOptions();
+            currentTrainingLine.InvokeWidth(15);
+            currentTrainingLine.InvokeColor(Resource.Color.secondary_color);
+        }
+
+        public void AddPolylinePoint(Location location)
+        {
+            currentTrainingLine.Add(new LatLng(location.Latitude, location.Longitude));
+            googleMap.AddPolyline(currentTrainingLine);
+            
         }
 
        
@@ -159,7 +238,24 @@ namespace runningapp
         {
             googleMap = mMap;
 
-            
+            try
+            {
+                // Customise the styling of the base map using a JSON object defined
+                // in a raw resource file.
+                bool success = googleMap.SetMapStyle(
+                        MapStyleOptions.LoadRawResourceStyle(
+                                Activity, Resource.Raw.style_json));
+
+                if (!success)
+                {
+                    Log.Info("Error", "Style parsing failed.");
+                }
+            }
+            catch (Resources.NotFoundException e)
+            {
+                Log.Info("Error", "Can't find style. Error: ");
+            }
+
             googleMap.MyLocationEnabled = true;
            // googleMap.SetOnCameraChangeListener(this);
          
@@ -204,6 +300,9 @@ namespace runningapp
         {
             void OnRecenterClick();
             void OnStartTrainingClick();
+            void OnPauseTrainingClick();
+            void OnStopTrainingClick();
+            void OnResumeTrainingClick();
         } 
     }
 }
