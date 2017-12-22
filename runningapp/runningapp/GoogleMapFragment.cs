@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -27,38 +26,31 @@ namespace runningapp
     {
         private MapView mMapView;
         private GoogleMap googleMap;
-
-
         private static int ZOOM = 15;
         private DisplayMetrics metrics;
         private Button recenter;
         private ImageButton stopButton;
         private LinearLayout contentLayout;
         private RelativeLayout mapsLayout;
-
         private ImageButton startButton;
         private IOnMapControlClick mListener;
         private PolylineOptions currentTrainingLine;
-        private Circle circle;
-
         private LinearLayout leftLayout;
         private LinearLayout rightLayout;
-
-        private LinearLayout container;
         private TextView stopWatchText;
         private LinearLayout bottomLayout;
         private RelativeLayout masterLayout;
         private TextView distanceText;
-        private Timer timer;
-        int hour, min, sec;
+        private MyTimer timer;
 
+        private int[] colors = { Resource.Color.line_color_1, Resource.Color.line_color_2, Resource.Color.line_color_3, Resource.Color.line_color_4, Resource.Color.line_color_5 };
+        private int colorCount = 0;
 
         private bool inTraining;
         public bool firstStart;
 
         private void SetUpVariables()
         {
-            ResetTimer();
             inTraining = false;
             firstStart = true;
             metrics = Resources.DisplayMetrics;
@@ -87,9 +79,7 @@ namespace runningapp
             LayoutToStart();
 
 
-            timer = new Timer();
-            timer.Interval = 1000;
-            timer.Elapsed += Timer_Elapsed;
+            timer = new MyTimer();
             
 
             recenter.Click += delegate
@@ -136,35 +126,13 @@ namespace runningapp
 
         }
 
-        private void ResetTimer()
-        {
-            hour = 0;
-            min = 0;
-            sec = 0;
-        }
+       
 
-        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            sec++;
-            if (sec == 60)
-            {
-                min++;
-                sec = 0;
-            }
-            if (min == 60)
-            {
-                hour++;
-                min = 0;
-            }
-            Activity.RunOnUiThread(() => stopWatchText.Text = hour + " : " + min + " : " + sec);
-        }
 
         private void LayoutToStart()
         {
             leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 2f);
-            startButton.SetImageResource(Resource.Mipmap.ic_play_arrow_black_24dp);
-           
-
+            startButton.SetImageResource(Resource.Mipmap.ic_play_arrow_black_24dp);      
         }
 
         private void LayoutPaused()
@@ -172,24 +140,14 @@ namespace runningapp
 
             leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 1f);
             leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 1f);
-
             startButton.SetImageResource(Resource.Mipmap.ic_play_arrow_black_24dp);
-            
-
-            
-
-
         }
 
         private void LayoutTraining()
         {
             leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 2f);
             startButton.SetImageResource(Resource.Mipmap.ic_pause_black_24dp);
-
-
         }
-
-
 
         public void DisplayTraining(Training training)
         {
@@ -201,18 +159,30 @@ namespace runningapp
             }
         }
 
-        public void StartViewTraining()
+        public void StartViewTraining(bool newColor)
         {
+            if (newColor)
+            {
+                colorCount++;
+            }
             currentTrainingLine = new PolylineOptions();
             currentTrainingLine.InvokeWidth(20);
-            currentTrainingLine.InvokeColor(Resource.Color.secondary_color);
+            currentTrainingLine.InvokeColor(colors[colorCount]);
+            
         }
 
-        public void AddPolylinePoint(Location location)
+       
+
+        public void AddPolylinePoint(LatLng location)
         {
-            currentTrainingLine.Add(new LatLng(location.Latitude, location.Longitude));
-            googleMap.AddPolyline(currentTrainingLine);
             
+            currentTrainingLine.Add(location);
+            googleMap.AddPolyline(currentTrainingLine);
+            if (currentTrainingLine.Points.Count > 50)
+            {
+                StartViewTraining(true);
+            }
+
         }
 
         public void SetDistanceText(float d)

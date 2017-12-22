@@ -5,5 +5,10 @@
     <item name="android:colorBackground">@color/theme_devicedefault_background</item>
     <item name="android:colorButtonNormal">#ff536dfe</item>
     <item name="android:windowBackground">?android:attr/colorBackground</item>
-  </style>
+
+  
+
+
+
+</style>
 </resources>
