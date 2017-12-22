@@ -154,7 +154,6 @@
     </Compile>
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SnapToRoadApi.cs" />
     <Compile Include="Track.cs" />
     <Compile Include="Training.cs" />
   </ItemGroup>
@@ -164,19 +163,7 @@
     <None Include="Resources\AboutResources.txt" />
     <None Include="Properties\AndroidManifest.xml" />
     <None Include="Assets\AboutAssets.txt" />
-    <AndroidResource Include="Resources\layout\nav_header.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-    <AndroidResource Include="Resources\layout\toolbar.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
     <AndroidResource Include="Resources\layout\fragment_maps.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-    <AndroidResource Include="Resources\layout\layout1.axml">
-      <SubType>Designer</SubType>
-    </AndroidResource>
-    <AndroidResource Include="Resources\layout\fragment_button.axml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>
@@ -207,7 +194,7 @@
     <AndroidResource Include="Resources\Menu\nav_menu.xml" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\values\Colors.xml">
+    <AndroidResource Include="Resources\values\colors.xml">
       <SubType>Designer</SubType>
     </AndroidResource>
   </ItemGroup>

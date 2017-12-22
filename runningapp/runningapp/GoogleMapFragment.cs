@@ -43,12 +43,12 @@ namespace runningapp
         private RelativeLayout masterLayout;
         private TextView distanceText;
         private MyTimer timer;
-        getSnappedPoints g;
+        Training training;
 
         private int[] colors = { Resource.Color.line_color_1, Resource.Color.line_color_2, Resource.Color.line_color_3, Resource.Color.line_color_4, Resource.Color.line_color_5 };
         private int colorCount = 0;
 
-        private bool inTraining;
+        public bool inTraining;
         public bool firstStart;
         private int sec;
         private int min;
@@ -94,43 +94,50 @@ namespace runningapp
 
             recenter.Click += delegate
             {
-                mListener.OnRecenterClick();
+                mListener.OnRecenterClick();             
             };
 
             startButton.Click += delegate
-            {
-              
+            {         
                 if (inTraining)
                 {
-                    LayoutPaused();
-                    mListener.OnPauseTrainingClick();
-                    inTraining = false;
-                    timer.Stop();
+                    this.PauseTraining();
                 }
                 else
                 {
                     if (firstStart)
                     {
-                        LayoutTraining();
-                        mListener.OnStartTrainingClick();
-                        inTraining = true;
-                        masterLayout.AddView(bottomLayout);
-                        timer.Start();
-
+                        if (mListener.LocationIsOn())
+                        {
+                            this.StartTraining();
+                        }
                     }
                     else
                     {
-                        LayoutTraining();
-                        mListener.OnResumeTrainingClick();
-                        inTraining = true;
-                        timer.Start();
+                        if (mListener.LocationIsOn())
+                        {
+                            this.ResumeTraining();
+                        }                       
                     }
                    
                 }
             };
 
             stopButton.Click += delegate {
-                mListener.OnStopTrainingClick();
+                // notify user
+                Android.Support.V7.App.AlertDialog.Builder dialog = new Android.Support.V7.App.AlertDialog.Builder(Activity);
+                dialog.SetMessage("Delete Training?");
+                dialog.SetPositiveButton("Delete", delegate
+                {
+                    this.StopTraining();
+                });
+
+                dialog.SetNegativeButton("Cancel", delegate {
+
+                });
+
+                dialog.Show();
+                
             };
 
 
@@ -159,75 +166,86 @@ namespace runningapp
             startButton.SetImageResource(Resource.Mipmap.ic_pause_black_24dp);
         }
 
-        public void DisplayTraining(Training training)
+        private void StartTraining()
         {
-            List<PolylineOptions> list = training.GetTrainingPolylines();
+            LayoutTraining();
+            masterLayout.AddView(bottomLayout);
+            timer.Start();
+            firstStart = false;
+            training = new Training();
+            inTraining = true;
+            ToastText("Training Started");
 
-            foreach(PolylineOptions l in list)
-            {
-                googleMap.AddPolyline(l);
-            }
         }
 
-        public void StartViewTraining(bool newColor)
+        private void PauseTraining()
         {
-            if (newColor)
-            {
-                colorCount++;
-            }
-            currentTrainingLine = new PolylineOptions();
-            currentTrainingLine.InvokeWidth(20);
-            currentTrainingLine.InvokeColor(colors[colorCount]);
-            
+            LayoutPaused();
+            inTraining = false;
+            timer.Stop();
+            training.Pause();
+            ToastText("Training Paused");
+
         }
 
-       
-
-        public void AddPolylinePoint(LatLng location)
+        private void ResumeTraining()
         {
-            if(g != null)
+            LayoutTraining();
+            inTraining = true;
+            timer.Start();
+            ToastText("Training Resumed");
+
+        }
+
+        private void StopTraining()
+        {
+            ToastText("Training Stopped");
+            LayoutToStart();
+            inTraining = false;
+            timer.Stop();
+            stopWatchText.Text = "00:00:00";
+            googleMap.Clear();
+            masterLayout.RemoveView(bottomLayout);
+        }
+
+        //Methode om vast te stellen of een verandering van locatie significant is, zo ja, voeg het punt toe aan de training en teken een lijn
+        public void AddLocation(Location location)
+        {
+            //Wanneer in training, geef locatie door aan training
+            if (inTraining)
             {
-                if (!g.thread.IsAlive)
+                //Wanneer de locatie verandering significant is, is current de LatLng van de locatie
+                LatLng current = training.AddPoint(location);
+
+                //Wanneer de verandering significant is, voeg een lijn toe van het vorige punt naar het huidige punt
+                if (current != null)
                 {
-                    if (g.result != null)
-                    {
-                        PolylineOptions snappedLine = new PolylineOptions();
-                        snappedLine.InvokeColor(Resource.Color.snapped_color);
-                        foreach (SnappedPoint l in g.result)
-                        {
-                            snappedLine.Add(new LatLng(l.Location.Latitude, l.Location.Longitude));
-                        }
-                        googleMap.AddPolyline(snappedLine);
-                    }
-
-
+                    AddLine(current);
                 }
             }
-            
-            
-            currentTrainingLine.Add(location);
-            googleMap.AddPolyline(currentTrainingLine);
-            if (currentTrainingLine.Points.Count > 10)
-            {
-                LoadSnapToRoad(currentTrainingLine);
-                StartViewTraining(true);
-                
-            }
-
         }
 
-        private void LoadSnapToRoad(PolylineOptions p)
-        {     
-            g = new getSnappedPoints(p);
-        }
-
-        public void SetDistanceText(float d)
+        private void AddLine(LatLng current)
         {
-            distanceText.Text = Java.Lang.String.ValueOf(d);
+            PolylineOptions polyLineOptions = new PolylineOptions();
+            polyLineOptions.InvokeWidth(20);
+            polyLineOptions.InvokeColor(Resource.Color.line_color_1);
+            List<Location> list = training.CurrentTrack().LocationList;
+            if (list.Count > 1)
+            {
+
+                LatLng prevPoint = new LatLng(list[list.Count - 2].Latitude, list[list.Count - 2].Longitude);
+                Log.Info("plek vorige", prevPoint.ToString());
+                Log.Info("plek huidige", current.ToString());
+
+                polyLineOptions.Add(prevPoint);
+                polyLineOptions.Add(current);
+                googleMap.AddPolyline(polyLineOptions);
+                Log.Info("plek kleur", polyLineOptions.Color.ToString());
+                SetDistanceText(training.GetCurrentDistance());
+            }
         }
 
-       
-        
         public void ZoomToLocation(Location loc)
         {
             LatLng location = new LatLng(loc.Latitude, loc.Longitude);
@@ -242,11 +260,21 @@ namespace runningapp
             }
         }
 
+
+      
+
+        public void SetDistanceText(float d)
+        {
+            distanceText.Text = Java.Lang.String.ValueOf(d);
+        }
+
+       
+        
+     
         public override void OnViewCreated(View view, Bundle savedInstanceState)
         {
             base.OnViewCreated(view, savedInstanceState);
             SetUpVariables();
-
         }
 
         public override void OnAttach(Activity context)
@@ -345,6 +373,16 @@ namespace runningapp
             mMapView.OnLowMemory();
         }
 
+        public void DisplayFullTraining(Training training)
+        {
+            List<PolylineOptions> list = training.GetTrainingPolylines();
+
+            foreach (PolylineOptions l in list)
+            {
+                googleMap.AddPolyline(l);
+            }
+        }
+
 
         //Method om de Timer te updaten
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -375,10 +413,12 @@ namespace runningapp
         public interface IOnMapControlClick
         {
             void OnRecenterClick();
-            void OnStartTrainingClick();
-            void OnPauseTrainingClick();
-            void OnStopTrainingClick();
-            void OnResumeTrainingClick();
-        } 
+            bool LocationIsOn();
+        }
+
+        private void ToastText(string text)
+        {
+            Toast.MakeText(Activity, text, ToastLength.Short);
+        }
     }
 }

@@ -46,7 +46,7 @@ namespace runningapp
                 Location prevLocation = LocationList.Last();
                 Location.DistanceBetween(p.Latitude, p.Longitude, prevLocation.Latitude, prevLocation.Longitude, results);
                 Log.Info("Distance", "Distance is: " + results[0]);
-                Distance += results[0];
+                
 
                 //Als de afstand groter is dan 2 meter 
                 if (results[0] > 2) 
@@ -56,7 +56,9 @@ namespace runningapp
                     LatLng point = new LatLng(p.Latitude, p.Longitude);
                     polylineOptions.Add(point);
                     Log.Info("Distance", "Distance is: " + Distance.ToString());
+                    Distance += results[0];
                     return point;
+
                 }
                 //Als de afstand niet meer dan 2 meter is, return null.
                 else

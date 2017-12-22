@@ -2,22 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <android.support.v4.widget.DrawerLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/drawer_layout"
-        android:layout_height="match_parent"
-        android:layout_width="fill_parent"
-        android:fitsSystemWindows="true">
-        <RelativeLayout
-            android:id="@+id/content_main"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-        <android.support.design.widget.NavigationView
-            android:id="@+id/nav_view"
-            android:layout_height="match_parent"
-            android:layout_width="300dp"
-            android:layout_gravity="start"
-            android:fitsSystemWindows="true"
-            app:headerLayout="@layout/nav_header" />
-    </android.support.v4.widget.DrawerLayout>
+    android:layout_height="match_parent"
+    android:weightSum="10">
+    <RelativeLayout
+        android:layout_weight="10"
+        android:id="@+id/content_main"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" />
+    
 </LinearLayout>

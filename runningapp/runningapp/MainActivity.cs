@@ -14,6 +14,7 @@ using System;
 using Android.Content;
 using Android.Support.V7.App;
 using Android.Gms.Maps.Model;
+using System.Collections.Generic;
 
 namespace runningapp
 {
@@ -28,9 +29,6 @@ namespace runningapp
         // Variabele voor de huidige locatie
         private Location _location;
 
-        // Layout variabelen.
-        private DrawerLayout drawerLayout;
-        private NavigationView navigationView;
         private GoogleMapFragment mapFragment;
 
         // Google location api variabelen.
@@ -40,22 +38,18 @@ namespace runningapp
         // bool variabele om te controleren of google play services zijn geinstalleerd.
         bool _isGooglePlayServicesInstalled;
 
-        // bool variablele om te controleren of er momenteel een training wordt opgenomen
-        bool recordingTraining;
-
-        // variabele voor de training
-        private Training training;
+        
 
         // override OnCreate.
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Log.Debug("OnCreate", "OnCreate aangeroepen");
-            recordingTraining = false;
 
             
             SetContentView(Resource.Layout.Main);
 
+          
             /* Opzetten en weergeven van GoogleMapFragment */ /// <see cref="GoogleMapFragment.cs"/> 
             mapFragment = new GoogleMapFragment();
 
@@ -64,8 +58,6 @@ namespace runningapp
 
             /* Controleer of de Google api's aanwezig zijn op het apparaat, zo niet, installeer ze */ /// <see cref="CheckAndInstallGoogleApi()"/>
             CheckAndInstallGoogleApi();
-
-            
         }
 
         // Override onresume.
@@ -132,23 +124,11 @@ namespace runningapp
             }
         }
 
-        // Methode om de locatie op de map te updaten
         private void UpdateLocation(Location location)
         {
+            Log.Debug("LocationClient", "Locatie veranderd");
             _location = location;
-
-            if (recordingTraining == true)
-            {
-                LatLng point = training.AddPoint(location);
-                if(point != null)
-                {
-                    mapFragment.AddPolylinePoint(point);
-                }
-                
-                mapFragment.SetDistanceText(training.GetCurrentDistance());
-            }
-
-
+            mapFragment.AddLocation(location);
         }
 
         //  Methode om fragments te weergeven
@@ -171,8 +151,8 @@ namespace runningapp
                 locRequest.SetPriority(LocationRequest.PriorityHighAccuracy);
                 
                 // Interval en snelste interval instellen in milliseconden
-                locRequest.SetFastestInterval(1500);
-                locRequest.SetInterval(3000);
+                locRequest.SetFastestInterval(500);
+                locRequest.SetInterval(1000);
 
                 Log.Debug("LocationRequest", "Request prioriteit ingesteld op {0}, interval ingesteld op {1} ms",
                     locRequest.Priority.ToString(), locRequest.Interval.ToString());
@@ -229,32 +209,14 @@ namespace runningapp
             return false;
         }
 
-        // Metgode om de navigatie op te zetten
-        private void SetupDrawerContent(NavigationView navigationView)
-        {
-            navigationView.NavigationItemSelected += (sender, e) =>
-            {
-                e.MenuItem.SetChecked(true);
-                drawerLayout.CloseDrawers();
-            };
-        }
+      
 
-        // Override OnCreateOptionsMenu
-        public override bool OnCreateOptionsMenu(IMenu menu)
-        {
-            navigationView.InflateMenu(Resource.Menu.nav_menu);
-            return true;
-        }
+      
 
         /* Interface */ /// <see cref="GoogleMapFragment.OnMapControlClick"/>
         public void OnRecenterClick()
-        {
-            if (!LocationEnabled())
-            {
-                CheckLocationSettings();
-
-            }
-
+        {     
+            CheckLocationSettings();
             if (_location != null)
             {
                 mapFragment.ZoomToLocation(_location);
@@ -265,56 +227,13 @@ namespace runningapp
             }
         }
 
-        /* Interface */ /// <see cref="GoogleMapFragment.IOnMapControlClick"/>
-        public void OnStartTrainingClick()
+
+        public bool LocationIsOn()
         {
-            mapFragment.firstStart = false;
-
-            if (!LocationEnabled())
-            {
-                CheckLocationSettings();
-            }
-            else
-            {
-                if(!recordingTraining)
-                {        
-                        Toast.MakeText(this, "Training Started", ToastLength.Short).Show();
-                        training = new Training();
-                        mapFragment.StartViewTraining(false);
-                        recordingTraining = true;          
-                }
-            }
-            
+            bool ret = LocationEnabled();
+            CheckLocationSettings();
+            return ret;
         }
-
-        public void OnPauseTrainingClick()
-        {
-            Toast.MakeText(this, "Training Paused", ToastLength.Short).Show();
-
-            if (recordingTraining)
-            {
-                training.Pause();
-                recordingTraining = false;
-            }
-        }
-
-        public void OnStopTrainingClick()
-        {
-            Toast.MakeText(this, "Training Stopped (nog geen functie)", ToastLength.Short).Show();
-            //mapFragment.firstStart = true;
-
-        }
-
-        public void OnResumeTrainingClick()
-        {
-            if (training != null)
-            {
-                recordingTraining = true;
-                mapFragment.StartViewTraining(true);
-                Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
-            }
-        }
-
 
         /* Interface */ /// <see cref="GoogleApiClient.IConnectionCallbacks"/>
         public void OnConnected(Bundle bundle)
@@ -342,8 +261,6 @@ namespace runningapp
         /* Interface */ /// <see cref="Android.Gms.Location.ILocationListener"/>
         public void OnLocationChanged(Location location)
         {
-            //Log.Debug("LocationClient", "Locatie veranderd");
-
             UpdateLocation(location);
         }
 
@@ -353,7 +270,7 @@ namespace runningapp
 
         }
 
-       
+        
     }
 }
 

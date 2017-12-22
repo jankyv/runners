@@ -18,6 +18,8 @@ namespace runningapp
 {
     public class Training
     {
+        // Variable voor de naam
+        private string name;
         // Lijst voor de verschillende tracks.
         private List<Track> tracks;
 
