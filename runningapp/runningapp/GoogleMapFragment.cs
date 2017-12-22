@@ -25,51 +25,65 @@ namespace runningapp
 {
     public class GoogleMapFragment : Fragment, IOnMapReadyCallback
     {
+        // Variabele voor de Google Map
         private MapView mMapView;
         private GoogleMap googleMap;
         private static int ZOOM = 15;
+
+        // Variabele voor afmetingen van het scherm
         private DisplayMetrics metrics;
+
+        // UI Variabelen
         private Button recenter;
         private ImageButton stopButton;
         private LinearLayout contentLayout;
         private RelativeLayout mapsLayout;
         private ImageButton startButton;
-        private IOnMapControlClick mListener;
-        private PolylineOptions currentTrainingLine;
         private LinearLayout leftLayout;
         private LinearLayout rightLayout;
         private TextView stopWatchText;
         private LinearLayout bottomLayout;
         private RelativeLayout masterLayout;
         private TextView distanceText;
+
+
         private MyTimer timer;
+
+        //variabele voor de training
         Training training;
 
-        private int[] colors = { Resource.Color.line_color_1, Resource.Color.line_color_2, Resource.Color.line_color_3, Resource.Color.line_color_4, Resource.Color.line_color_5 };
-        private int colorCount = 0;
+        // Interface variabele
+        private IOnMapControlClick mListener;
 
+
+        // bool variabelen voor het bepalen van de eerste start en of de training gaande is of niet
         public bool inTraining;
         public bool firstStart;
+
+        //variabelen voor de stopwatch
         private int sec;
         private int min;
         private int hour;
-
         public string TimerText { get; private set; }
 
+        // Methode om alle variabelen toe te wijzen en de UI op te zetten
         private void SetUpVariables()
         {
+            // bool variabelen
             inTraining = false;
             firstStart = true;
+
+            // UI variabelen
             metrics = Resources.DisplayMetrics;
             contentLayout = Activity.FindViewById<LinearLayout>(Resource.Id.content_layout);
             mapsLayout = Activity.FindViewById<RelativeLayout>(Resource.Id.maps_layout);
-            
-            recenter = Activity.FindViewById<Button>(Resource.Id.zoomToLoc);
 
+            recenter = Activity.FindViewById<Button>(Resource.Id.zoomToLoc);
             startButton = Activity.FindViewById<ImageButton>(Resource.Id.startTraining);
-            contentLayout.LayoutParameters.Height = ViewGroup.LayoutParams.WrapContent;
-            
+
+            contentLayout.LayoutParameters.Height = ViewGroup.LayoutParams.WrapContent;      
             mapsLayout.LayoutParameters.Height = (int)(metrics.HeightPixels - contentLayout.LayoutParameters.Height);
+
             leftLayout = Activity.FindViewById<LinearLayout>(Resource.Id.layout_left);
             rightLayout = Activity.FindViewById<LinearLayout>(Resource.Id.layout_left);
             stopButton = Activity.FindViewById<ImageButton>(Resource.Id.stopTraining);
@@ -80,12 +94,11 @@ namespace runningapp
 
             masterLayout = Activity.FindViewById<RelativeLayout>(Resource.Id.master_layout);
             masterLayout.RemoveView(bottomLayout);
-
-            
-
+                
+            // Roep method aan om de layout te organiseren om een run te kunnen starten
             LayoutToStart();
 
-
+            // Timer opzetten
             timer = new MyTimer();
             timer.Interval = 1000;
             timer.Elapsed += Timer_Elapsed;
@@ -252,6 +265,7 @@ namespace runningapp
             CameraPosition.Builder builder = CameraPosition.InvokeBuilder();
             builder.Target(location);
             builder.Zoom(ZOOM);
+            builder.Bearing(1);
             CameraPosition cameraPosition = builder.Build();
             CameraUpdate cameraUpdate = CameraUpdateFactory.NewCameraPosition(cameraPosition);
             if (googleMap != null)
@@ -265,7 +279,7 @@ namespace runningapp
 
         public void SetDistanceText(float d)
         {
-            distanceText.Text = Java.Lang.String.ValueOf(d);
+            distanceText.Text = Java.Lang.String.ValueOf((int)d) + " meter ";
         }
 
        
@@ -343,7 +357,8 @@ namespace runningapp
             }
 
             googleMap.MyLocationEnabled = true;
-           // googleMap.SetOnCameraChangeListener(this);
+            googleMap.UiSettings.CompassEnabled = true;
+            googleMap.SetPadding(0,500,0,0);
          
         }
 
@@ -391,12 +406,12 @@ namespace runningapp
             if (sec == 60)
             {
                 min++;
-                sec = 0;
+                sec = 00;
             }
             if (min == 60)
             {
                 hour++;
-                min = 0;
+                min = 00;
             }
             Activity.RunOnUiThread(() => stopWatchText.Text = hour + " : " + min + " : " + sec);
         }
@@ -404,9 +419,9 @@ namespace runningapp
         //Method om de timer te resetten
         private void ResetTimer()
         {
-            hour = 0;
-            min = 0;
-            sec = 0;
+            hour = 00;
+            min = 00;
+            sec = 00;
         }
 
 
