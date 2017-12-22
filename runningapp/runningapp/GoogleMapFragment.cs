@@ -104,18 +104,21 @@ namespace runningapp
             timer.Elapsed += Timer_Elapsed;
             ResetTimer();
 
-
+            // Handler voor recenter
             recenter.Click += delegate
             {
                 mListener.OnRecenterClick();             
             };
 
+            // Handler voor start
             startButton.Click += delegate
             {         
+                //Als de training bezig is, pauzeer de training
                 if (inTraining)
                 {
                     this.PauseTraining();
                 }
+                //Als de training niet bezig is, hervat of start deze
                 else
                 {
                     if (firstStart)
@@ -136,8 +139,9 @@ namespace runningapp
                 }
             };
 
+            // Handler voor stop
             stopButton.Click += delegate {
-                // notify user
+                //Alert
                 Android.Support.V7.App.AlertDialog.Builder dialog = new Android.Support.V7.App.AlertDialog.Builder(Activity);
                 dialog.SetMessage("Delete Training?");
                 dialog.SetPositiveButton("Delete", delegate
@@ -148,17 +152,11 @@ namespace runningapp
                 dialog.SetNegativeButton("Cancel", delegate {
 
                 });
-
-                dialog.Show();
-                
+                dialog.Show();                
             };
-
-
         }
 
-       
-
-
+        // Layout methodes
         private void LayoutToStart()
         {
             leftLayout.LayoutParameters = new LinearLayout.LayoutParams(0, WindowManagerLayoutParams.WrapContent, 2f);
@@ -179,46 +177,91 @@ namespace runningapp
             startButton.SetImageResource(Resource.Mipmap.ic_pause_black_24dp);
         }
 
+        // Method voor het starten van de training
         private void StartTraining()
         {
+            // Organiseer de layout voor training
             LayoutTraining();
-            masterLayout.AddView(bottomLayout);
-            timer.Start();
-            firstStart = false;
-            training = new Training();
-            inTraining = true;
-            ToastText("Training Started");
 
+            // Voeg het gedeelte voor de Stopwatch en Afstand toe
+            masterLayout.AddView(bottomLayout);
+
+            // Start de timer
+            timer.Start();
+
+            // Eerste keer starten is gebeurt
+            firstStart = false;
+
+            // Training aanmaken
+            training = new Training();
+
+            // Aan het trainen
+            inTraining = true;
+
+            // Toast
+            ToastText("Training Started");
         }
 
+        // Methode voor het pauzeren van de training
         private void PauseTraining()
         {
+            // Organiseer Layout voor pauze
             LayoutPaused();
+
+            // Niet meer aan het trainen
             inTraining = false;
+
+            // Stop de timer
             timer.Stop();
+
+            // Pauzeer de training
             training.Pause();
+
+            //Toast
             ToastText("Training Paused");
 
         }
 
+        // Methode voor het hervatten van de training.
         private void ResumeTraining()
         {
+            // Organiseer de layout voor trainen
             LayoutTraining();
-            inTraining = true;
-            timer.Start();
-            ToastText("Training Resumed");
 
+            // Aan het trainen
+            inTraining = true;
+
+            // Start de timer
+            timer.Start();
+
+            //Toast
+            ToastText("Training Resumed");
         }
 
         private void StopTraining()
         {
-            ToastText("Training Stopped");
+            //Organiseer de layout voor Opnieuw Starten
             LayoutToStart();
+
+            // niet meer aan het trainen
             inTraining = false;
+
+            // stop de timer
             timer.Stop();
+
+            //Reset de Timer en de Stopwatch
+            ResetTimer();
             stopWatchText.Text = "00:00:00";
+
+            //Clear de Map
             googleMap.Clear();
+
+            // Verberg de stopwatch en afstand
             masterLayout.RemoveView(bottomLayout);
+
+            //Toast
+            ToastText("Training Stopped");
+
         }
 
         //Methode om vast te stellen of een verandering van locatie significant is, zo ja, voeg het punt toe aan de training en teken een lijn
@@ -238,29 +281,35 @@ namespace runningapp
             }
         }
 
+        // Methode om lijn toe te voegen aan de Google Map
         private void AddLine(LatLng current)
         {
+            // Nieuwe Lijn
             PolylineOptions polyLineOptions = new PolylineOptions();
             polyLineOptions.InvokeWidth(20);
             polyLineOptions.InvokeColor(Resource.Color.line_color_1);
+
+            //Lijst van locaties uit de huidige training / track
             List<Location> list = training.CurrentTrack().LocationList;
+
+            //Als er zich in de lijst meer dan 1 locatie bevindt
             if (list.Count > 1)
             {
-
+                // Voeg een lijn toe tussen het 1 na laatste punt en het laatste punt in de lijst
                 LatLng prevPoint = new LatLng(list[list.Count - 2].Latitude, list[list.Count - 2].Longitude);
-                Log.Info("plek vorige", prevPoint.ToString());
-                Log.Info("plek huidige", current.ToString());
-
                 polyLineOptions.Add(prevPoint);
                 polyLineOptions.Add(current);
                 googleMap.AddPolyline(polyLineOptions);
-                Log.Info("plek kleur", polyLineOptions.Color.ToString());
+
+                // Verander de tekst van de afstand in de huidige afstand
                 SetDistanceText(training.GetCurrentDistance());
             }
         }
 
+        // Methode om naar een locatie op de map te zoomen
         public void ZoomToLocation(Location loc)
         {
+            // Maak een camera positie met de locatie
             LatLng location = new LatLng(loc.Latitude, loc.Longitude);
             CameraPosition.Builder builder = CameraPosition.InvokeBuilder();
             builder.Target(location);
@@ -268,52 +317,54 @@ namespace runningapp
             builder.Bearing(1);
             CameraPosition cameraPosition = builder.Build();
             CameraUpdate cameraUpdate = CameraUpdateFactory.NewCameraPosition(cameraPosition);
+
+            // Als de googleMap bestaat, animeer naar de locatie.
             if (googleMap != null)
             {
                 googleMap.AnimateCamera(cameraUpdate);
             }
         }
 
-
-      
-
+        // Methode om de Afstand tekst te veranderen naar de string van een afgeronde float waarde.
         public void SetDistanceText(float d)
         {
             distanceText.Text = Java.Lang.String.ValueOf((int)d) + " meter ";
         }
 
-       
-        
-     
+        // Override OnViewCreated 
         public override void OnViewCreated(View view, Bundle savedInstanceState)
         {
             base.OnViewCreated(view, savedInstanceState);
+
+            // Roep SetUpVariables aan
             SetUpVariables();
         }
 
+        // Override OnAttach om de interface aan de Activity te koppelen
         public override void OnAttach(Activity context)
         {
             base.OnAttach(context);
             mListener = (IOnMapControlClick)context;        
         }
 
+        // Override OnDetach
         public override void OnDetach()
         {
             base.OnDetach();
             mListener = null;
         }
 
-
-
+        // override onCreateView
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
             View rootView = inflater.Inflate(Resource.Layout.fragment_maps, container, false);
 
+            //instantieer de Google Map
             mMapView = (MapView)rootView.FindViewById(Resource.Id.mapView);
             mMapView.OnCreate(savedInstanceState);
 
+            // Roep OnResume aan op de map om hem zo snel mogelijk te weergeven
             mMapView.OnResume(); 
-
             try
             {
                 MapsInitializer.Initialize(Activity.ApplicationContext);
@@ -323,25 +374,24 @@ namespace runningapp
                 e.PrintStackTrace();
             }
 
+            // Laad de map asynchroon
             mMapView.GetMapAsync(this);
-            // Get the button view 
+
+            // Verberg de locatie button van Google
             View par = ((View)mMapView.FindViewById(1).Parent);
             View LocationButton = par.FindViewById(2);
             LocationButton.LayoutParameters.Height = 0;
             return rootView;
-        }
+        }  
 
-
-        
-
+        // Implement OnMapReady
         public void OnMapReady(GoogleMap mMap)
         {
             googleMap = mMap;
 
+            //Custom style voor de Google Map instellen
             try
             {
-                // Customise the styling of the base map using a JSON object defined
-                // in a raw resource file.
                 bool success = googleMap.SetMapStyle(
                         MapStyleOptions.LoadRawResourceStyle(
                                 Activity, Resource.Raw.style_json));
@@ -356,48 +406,54 @@ namespace runningapp
                 Log.Info("Error", "Can't find style. Error: ");
             }
 
+            //UIcontrols Google Map instellen
             googleMap.MyLocationEnabled = true;
             googleMap.UiSettings.CompassEnabled = true;
             googleMap.SetPadding(0,500,0,0);
          
         }
 
-
-
+        // Override OnPause
         public override void OnPause()
         {
             base.OnPause();
+            // roep OnPause aan op de MapView
             mMapView.OnPause();
         }
 
+        // Override OnResume
         public override void OnResume()
         {
             base.OnResume();
+            // roep OnResume aan op de MapView
             mMapView.OnResume();
         }
 
+        // Override OnDestroy
         public override void OnDestroy()
         {
             base.OnDestroy();
+            // roep OnDestroy aan op de MapView
             mMapView.OnDestroy();
         }
 
+        // Override OnLowMemory
         public override void OnLowMemory()
         {
             base.OnLowMemory();
+            // roep OnLowMemory aan op de MapView
             mMapView.OnLowMemory();
         }
 
+        // Methode om een volledige training te weergeven (straks voor de analyseer opgaven in practicum 3)
         public void DisplayFullTraining(Training training)
         {
             List<PolylineOptions> list = training.GetTrainingPolylines();
-
             foreach (PolylineOptions l in list)
             {
                 googleMap.AddPolyline(l);
             }
         }
-
 
         //Method om de Timer te updaten
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -424,16 +480,18 @@ namespace runningapp
             sec = 00;
         }
 
-
+        // interface om met de activity te communiceren
         public interface IOnMapControlClick
         {
             void OnRecenterClick();
             bool LocationIsOn();
+            void CustomToast(string text);
         }
 
+        // Methode om wat te toasten
         private void ToastText(string text)
         {
-            Toast.MakeText(Activity, text, ToastLength.Short);
+            mListener.CustomToast(text);
         }
     }
 }

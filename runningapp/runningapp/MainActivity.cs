@@ -270,7 +270,11 @@ namespace runningapp
 
         }
 
-        
+        public void CustomToast(string text)
+        {
+            Toast.MakeText(this, text, ToastLength.Short);
+
+        }
     }
 }
 
