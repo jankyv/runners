@@ -13,6 +13,7 @@ using Android.Util;
 using System;
 using Android.Content;
 using Android.Support.V7.App;
+using Android.Gms.Maps.Model;
 
 namespace runningapp
 {
@@ -24,6 +25,7 @@ namespace runningapp
                                     Android.Gms.Location.ILocationListener
 
     {
+        // Variabele voor de huidige locatie
         private Location _location;
 
         // Layout variabelen.
@@ -35,24 +37,24 @@ namespace runningapp
         GoogleApiClient apiClient;
         LocationRequest locRequest;
 
-        //bool variabele om te controleren of google play services zijn geinstalleerd.
+        // bool variabele om te controleren of google play services zijn geinstalleerd.
         bool _isGooglePlayServicesInstalled;
 
+        // bool variablele om te controleren of er momenteel een training wordt opgenomen
         bool recordingTraining;
 
+        // variabele voor de training
         private Training training;
 
-        // Override oncreate.
+        // override OnCreate.
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Log.Debug("OnCreate", "OnCreate aangeroepen");
             recordingTraining = false;
 
-            // Set content view to layout Main.axml.
+            
             SetContentView(Resource.Layout.Main);
-
-            /* Opzetten van side menu. */ /// <see cref="SetUpSideMenu()"/>
 
             /* Opzetten en weergeven van GoogleMapFragment */ /// <see cref="GoogleMapFragment.cs"/> 
             mapFragment = new GoogleMapFragment();
@@ -109,8 +111,6 @@ namespace runningapp
 
         private void CheckLocationSettings()
         {
-            
-
             if (!LocationEnabled())
             {
                 // notify user
@@ -129,7 +129,35 @@ namespace runningapp
                  dialog.Show();      
             }
         }
-    
+
+        // Methode om de locatie op de map te updaten
+        private void UpdateLocation(Location location)
+        {
+            _location = location;
+
+            if (recordingTraining == true)
+            {
+                LatLng point = training.AddPoint(location);
+                if(point != null)
+                {
+                    mapFragment.AddPolylinePoint(point);
+                }
+                
+                mapFragment.SetDistanceText(training.GetCurrentDistance());
+            }
+
+
+        }
+
+        //  Methode om fragments te weergeven
+        private void ShowFragment(Android.App.Fragment fragment)
+        {
+            Android.App.FragmentTransaction fragmentTransaction = FragmentManager.BeginTransaction();
+            fragmentTransaction.Replace(Resource.Id.content_main, fragment)
+                    .AddToBackStack(null)
+                    .Commit();
+        }
+
         // Asynchrone methode om locatie updates aan te vragen
         private async void RequestLocationUpdates() {
 
@@ -137,11 +165,9 @@ namespace runningapp
             // als de apiClient is verbonden
             if (apiClient.IsConnected)
             {
-
                 // Prioriteit naar 100 zetten (Hoog)
                 locRequest.SetPriority(LocationRequest.PriorityHighAccuracy);
                 
-
                 // Interval en snelste interval instellen in milliseconden
                 locRequest.SetFastestInterval(1500);
                 locRequest.SetInterval(3000);
@@ -156,30 +182,6 @@ namespace runningapp
             {
                 Log.Info("LocationClient", "Please wait for Client to connect");
             }
-        }
-
-        // Methode om de locatie op de map te updaten
-        private void UpdateLocation(Location location)
-        {
-            _location = location;
-
-            if(recordingTraining == true)
-            {
-                training.AddPoint(location);
-                mapFragment.AddPolylinePoint(location);
-                mapFragment.SetDistanceText(training.GetCurrentDistance());
-            }
-           
-            
-        }
-
-        //  Methode om fragments te weergeven
-        private void ShowFragment(Android.App.Fragment fragment)
-        {
-            Android.App.FragmentTransaction fragmentTransaction = FragmentManager.BeginTransaction();
-            fragmentTransaction.Replace(Resource.Id.content_main, fragment)                 
-                    .AddToBackStack(null)
-                    .Commit();
         }
 
         // Methode om te ontroleren of de Google api's aanwezig zijn op het apparaat, zo niet, installeer ze
@@ -225,8 +227,6 @@ namespace runningapp
             return false;
         }
 
-       
-
         // Metgode om de navigatie op te zetten
         private void SetupDrawerContent(NavigationView navigationView)
         {
@@ -258,8 +258,7 @@ namespace runningapp
                 mapFragment.ZoomToLocation(_location);
             }
             else
-            {
-                
+            {         
                 Toast.MakeText(this, "Location not available", ToastLength.Short).Show();
             }
         }
@@ -275,18 +274,12 @@ namespace runningapp
             }
             else
             {
-                
                 if(!recordingTraining)
-                {
-                    
-                    
+                {        
                         Toast.MakeText(this, "Training Started", ToastLength.Short).Show();
-
                         training = new Training();
-                        mapFragment.StartViewTraining();
-                        recordingTraining = true;
-                        
-                    
+                        mapFragment.StartViewTraining(false);
+                        recordingTraining = true;          
                 }
             }
             
@@ -300,6 +293,23 @@ namespace runningapp
             {
                 training.Pause();
                 recordingTraining = false;
+            }
+        }
+
+        public void OnStopTrainingClick()
+        {
+            Toast.MakeText(this, "Training Stopped (nog geen functie)", ToastLength.Short).Show();
+            //mapFragment.firstStart = true;
+
+        }
+
+        public void OnResumeTrainingClick()
+        {
+            if (training != null)
+            {
+                recordingTraining = true;
+                mapFragment.StartViewTraining(true);
+                Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
             }
         }
 
@@ -341,23 +351,7 @@ namespace runningapp
 
         }
 
-        public void OnStopTrainingClick()
-        {
-            Toast.MakeText(this, "Training Stopped (nog geen functie)", ToastLength.Short).Show();
-            //mapFragment.firstStart = true;
-
-        }
-
-        public void OnResumeTrainingClick()
-        {
-            if (training != null)
-            {
-
-                recordingTraining = true;
-                Toast.MakeText(this, "Training Resumed", ToastLength.Short).Show();
-
-            }
-        }
+       
     }
 }
 
