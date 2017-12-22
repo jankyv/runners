@@ -18,30 +18,108 @@ using Java.Lang;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Android.Locations;
+using Android.Util;
+using Android.Gms.Maps.Model;
+using System.Threading;
 
 namespace runningapp
 {
-    class SnapToRoadApi
+    public class getSnappedPoints
     {
+        public List<SnappedPoint> result;
+        public bool Loaded = false;
+        public System.Threading.Thread thread;
 
-        static public List<SnappedPoint> SnapToRoad()
-        {
+
+        public void getData(PolylineOptions p) {
+            string res = "";
+            if (p != null)
+            {
+                for (int i = 0; i < p.Points.Count; i++)
+                {
+                    res += p.Points[i].Latitude + "," + p.Points[i].Longitude;
+                    if (i != p.Points.Count)
+                    {
+                        res += "|";
+                    }
+
+                }
+            }
+            Log.Info("SnappedPoint", "doinbackground");
             Uri myUri = new Uri(
-                                    "https://roads.googleapis.com/v1/snapToRoads?path=-35.28194,149.13003&interpolate=true&key=AIzaSyASJzv77xkOmtcpdcE7pNVHK7UZSrQmC3o");
+                                  "https://roads.googleapis.com/v1/snapToRoads?path=" + res + "&interpolate=true&key=AIzaSyASJzv77xkOmtcpdcE7pNVHK7UZSrQmC3o");
             WebRequest request = WebRequest.Create(myUri);
             WebResponse response = request.GetResponse();
 
             Stream dataStream = response.GetResponseStream();
             StreamReader reader = new StreamReader(dataStream);
+
             // Read the content.  
             string responseFromServer = reader.ReadToEnd();
+            reader.Close();
 
             var data = Welcome.FromJson(responseFromServer);
-
-            Console.WriteLine(data.SnappedPoints);
-            return data.SnappedPoints;
+            result = data.SnappedPoints;
+            Log.Info("SnappedPoint", data.SnappedPoints[0].Location.Latitude.ToString());
+            Loaded = true;
+            
         }
+
+        public getSnappedPoints(PolylineOptions p)
+        {
+            ThreadStart newThread = new ThreadStart(delegate { getData(p); });
+
+            thread = new System.Threading.Thread(newThread);
+            thread.Start();
+
+        }
+
+
+
     }
+
+
+
+    /*public class MyTask : AsyncTask<string, List<SnappedPoint>, List<SnappedPoint>>
+    {
+        protected MyTask(IntPtr javaReference, JniHandleOwnership transfer)
+            : base(javaReference, transfer)
+        {
+
+        }
+        public MyTask()
+        {
+
+        }
+
+        protected override List<SnappedPoint> RunInBackground(params string[] @params)
+        {
+             Log.Info("SnappedPoint", "doinbackground");
+             Uri myUri = new Uri(
+                                   "https://roads.googleapis.com/v1/snapToRoads?path=-35.28194,149.13003&interpolate=true&key=AIzaSyASJzv77xkOmtcpdcE7pNVHK7UZSrQmC3o");
+             WebRequest request = WebRequest.Create(myUri);
+             WebResponse response = request.GetResponse();
+
+             Stream dataStream = response.GetResponseStream();
+             StreamReader reader = new StreamReader(dataStream);
+
+             // Read the content.  
+             string responseFromServer = reader.ReadToEnd();
+
+             var data = Welcome.FromJson(responseFromServer);
+
+             return data.SnappedPoints;
+        }
+
+        protected override void OnPostExecute(List<SnappedPoint> result)
+        {
+            Log.Info("Async", result.ToString());
+
+            base.OnPostExecute(result);
+        }
+    }*/
+
+    
 
     public partial class Welcome
     {

@@ -43,6 +43,7 @@ namespace runningapp
         private RelativeLayout masterLayout;
         private TextView distanceText;
         private MyTimer timer;
+        getSnappedPoints g;
 
         private int[] colors = { Resource.Color.line_color_1, Resource.Color.line_color_2, Resource.Color.line_color_3, Resource.Color.line_color_4, Resource.Color.line_color_5 };
         private int colorCount = 0;
@@ -122,7 +123,6 @@ namespace runningapp
 
             stopButton.Click += delegate {
                 mListener.OnStopTrainingClick();
-                SnapToRoadApi.SnapToRoad();
             };
 
 
@@ -177,14 +177,40 @@ namespace runningapp
 
         public void AddPolylinePoint(LatLng location)
         {
+            if(g != null)
+            {
+                if (!g.thread.IsAlive)
+                {
+                    if (g.result != null)
+                    {
+                        PolylineOptions snappedLine = new PolylineOptions();
+                        snappedLine.InvokeColor(Resource.Color.snapped_color);
+                        foreach (SnappedPoint l in g.result)
+                        {
+                            snappedLine.Add(new LatLng(l.Location.Latitude, l.Location.Longitude));
+                        }
+                        googleMap.AddPolyline(snappedLine);
+                    }
+
+
+                }
+            }
+            
             
             currentTrainingLine.Add(location);
             googleMap.AddPolyline(currentTrainingLine);
-            if (currentTrainingLine.Points.Count > 50)
+            if (currentTrainingLine.Points.Count > 10)
             {
+                LoadSnapToRoad(currentTrainingLine);
                 StartViewTraining(true);
+                
             }
 
+        }
+
+        private void LoadSnapToRoad(PolylineOptions p)
+        {     
+            g = new getSnappedPoints(p);
         }
 
         public void SetDistanceText(float d)

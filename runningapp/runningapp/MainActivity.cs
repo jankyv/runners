@@ -64,6 +64,8 @@ namespace runningapp
 
             /* Controleer of de Google api's aanwezig zijn op het apparaat, zo niet, installeer ze */ /// <see cref="CheckAndInstallGoogleApi()"/>
             CheckAndInstallGoogleApi();
+
+            
         }
 
         // Override onresume.

@@ -6,6 +6,7 @@
     <color name="line_color_3">#fc953c</color>
     <color name="line_color_4">#fc653c</color>
     <color name="line_color_5">#de79f2</color>
+    <color name="snapped_color">#ff6666</color>
 
     
 </resources>  
