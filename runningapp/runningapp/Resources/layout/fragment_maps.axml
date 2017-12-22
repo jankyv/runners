@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    android:id="@+id/master_layout">
+    <RelativeLayout
+        android:id="@+id/maps_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </RelativeLayout>
+    <LinearLayout
+        android:id="@+id/content_layout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/card"
+        android:padding="15dp"
+        android:weightSum="2">
+        <LinearLayout
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/zoomToLoc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recenter" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:weightSum="2"
+            android:id="@+id/container"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:id="@+id/layout_left"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:weightSum="1"
+                android:orientation="vertical">
+                <ImageButton
+                    android:id="@+id/startTraining"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/ic_play_arrow_black_24dp" />
+            </LinearLayout>
+        <!-- Right side spacer -->
+            <LinearLayout
+                android:id="@+id/layout_right"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:weightSum="1"
+                android:orientation="vertical">
+                <ImageButton
+                    android:id="@+id/stopTraining"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:src="@mipmap/ic_stop_black_24dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/stats_layout"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/card_bottom"
+        android:layout_alignParentBottom="true"
+        android:padding="15dp"
+        android:weightSum="2">
+        <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+          <TextView
+            android:id="@+id/stopWatchView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textAlignment="center"
+            android:layout_centerHorizontal="true"
+            android:text="Stopwatch"
+            android:layout_gravity="center"
+            android:gravity="center"
+
+            android:textSize="25dp"/>
+          
+        </LinearLayout>
+
+        <LinearLayout
+         android:layout_height="wrap_content"
+         android:layout_width="0dp"
+         android:layout_weight="1"
+         android:orientation="vertical">
+          <TextView
+            android:id="@+id/distanceText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textAlignment="center"
+            android:layout_centerHorizontal="true"
+            android:text="Distance"
+            android:layout_gravity="center"
+            android:gravity="center"
+
+            android:textSize="25dp"/>
+
+        </LinearLayout>
+      
+    </LinearLayout>
+</RelativeLayout>
