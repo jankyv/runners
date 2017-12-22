@@ -154,6 +154,7 @@
     <Compile Include="MyTimer.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="SnapToRoadApi.cs" />
     <Compile Include="Track.cs" />
     <Compile Include="Training.cs" />
   </ItemGroup>
