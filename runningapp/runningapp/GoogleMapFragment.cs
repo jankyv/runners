@@ -50,6 +50,11 @@ namespace runningapp
 
         private bool inTraining;
         public bool firstStart;
+        private int sec;
+        private int min;
+        private int hour;
+
+        public string TimerText { get; private set; }
 
         private void SetUpVariables()
         {
@@ -82,7 +87,10 @@ namespace runningapp
 
 
             timer = new MyTimer();
-            
+            timer.Interval = 1000;
+            timer.Elapsed += Timer_Elapsed;
+            ResetTimer();
+
 
             recenter.Click += delegate
             {
@@ -337,7 +345,32 @@ namespace runningapp
             mMapView.OnLowMemory();
         }
 
-     
+
+        //Method om de Timer te updaten
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            sec++;
+            if (sec == 60)
+            {
+                min++;
+                sec = 0;
+            }
+            if (min == 60)
+            {
+                hour++;
+                min = 0;
+            }
+            Activity.RunOnUiThread(() => stopWatchText.Text = hour + " : " + min + " : " + sec);
+        }
+
+        //Method om de timer te resetten
+        private void ResetTimer()
+        {
+            hour = 0;
+            min = 0;
+            sec = 0;
+        }
+
 
         public interface IOnMapControlClick
         {
