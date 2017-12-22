@@ -340,7 +340,7 @@ namespace runningapp
         /* Interface */ /// <see cref="Android.Gms.Location.ILocationListener"/>
         public void OnLocationChanged(Location location)
         {
-            Log.Debug("LocationClient", "Locatie veranderd");
+            //Log.Debug("LocationClient", "Locatie veranderd");
 
             UpdateLocation(location);
         }

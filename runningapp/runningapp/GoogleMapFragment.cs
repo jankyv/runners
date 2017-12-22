@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -121,6 +122,7 @@ namespace runningapp
 
             stopButton.Click += delegate {
                 mListener.OnStopTrainingClick();
+                SnapToRoadApi.SnapToRoad();
             };
 
 
