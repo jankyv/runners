@@ -198,8 +198,7 @@ namespace runningapp
             // Aan het trainen
             inTraining = true;
 
-            // Toast
-            ToastText("Training Started");
+          
         }
 
         // Methode voor het pauzeren van de training
@@ -217,9 +216,6 @@ namespace runningapp
             // Pauzeer de training
             training.Pause();
 
-            //Toast
-            ToastText("Training Paused");
-
         }
 
         // Methode voor het hervatten van de training.
@@ -234,8 +230,7 @@ namespace runningapp
             // Start de timer
             timer.Start();
 
-            //Toast
-            ToastText("Training Resumed");
+           
         }
 
         private void StopTraining()
@@ -256,11 +251,12 @@ namespace runningapp
             //Clear de Map
             googleMap.Clear();
 
+            SharedPrefsSaver.SaveTraining(training);
+
             // Verberg de stopwatch en afstand
             masterLayout.RemoveView(bottomLayout);
 
-            //Toast
-            ToastText("Training Stopped");
+           
 
         }
 
@@ -485,13 +481,8 @@ namespace runningapp
         {
             void OnRecenterClick();
             bool LocationIsOn();
-            void CustomToast(string text);
         }
 
-        // Methode om wat te toasten
-        private void ToastText(string text)
-        {
-            mListener.CustomToast(text);
-        }
+        
     }
 }

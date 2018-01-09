@@ -38,20 +38,20 @@ namespace runningapp
         // bool variabele om te controleren of google play services zijn geinstalleerd.
         bool _isGooglePlayServicesInstalled;
 
-        
-
         // override OnCreate.
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Log.Debug("OnCreate", "OnCreate aangeroepen");
-
+            SharedPrefsSaver.GetTrainingFromPreferences();
             
             SetContentView(Resource.Layout.Main);
 
           
             /* Opzetten en weergeven van GoogleMapFragment */ /// <see cref="GoogleMapFragment.cs"/> 
             mapFragment = new GoogleMapFragment();
+            HistoryFragment h = new HistoryFragment();
+
 
             /* Weergeven van GoogleMapFragment d.m.v. methode */ /// <see cref="ShowFragment(Android.App.Fragment)"/>
             ShowFragment(mapFragment);
@@ -270,11 +270,7 @@ namespace runningapp
 
         }
 
-        public void CustomToast(string text)
-        {
-            Toast.MakeText(this, text, ToastLength.Short);
-
-        }
+      
     }
 }
 
