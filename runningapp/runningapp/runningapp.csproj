@@ -148,12 +148,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GoogleMapFragment.cs" />
+    <Compile Include="HistoryFragment.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="MyTimer.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SharedPrefsSaver.cs" />
     <Compile Include="Track.cs" />
     <Compile Include="Training.cs" />
   </ItemGroup>
