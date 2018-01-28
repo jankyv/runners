@@ -4,4 +4,8 @@
   <string name="google_maps_key">AIzaSyASJzv77xkOmtcpdcE7pNVHK7UZSrQmC3o</string>
   <string name="drawer_open">Open</string>
   <string name="drawer_close">Close</string>
+  <string name="hello">Hello World, Click Me!</string>
+  <string name="app_name">DrawerLayout_V7_Tutorial</string>
+  <string name="openDrawer">Drawer Open</string>
+  <string name="closeDrawer">Drawer Closed</string>
 </resources>

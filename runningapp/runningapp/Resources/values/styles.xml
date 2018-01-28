@@ -9,4 +9,14 @@
    
     <item name="android:windowBackground">@color/window_background</item>
   </style>
+
+  <style name="Theme.MyTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="colorPrimary">#2196F3</item>
+    <item name="drawerArrowStyle">@style/MyDrawerArrowStyle</item>
+  </style>
+
+  <style name="MyDrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+    <item name="color">#2196F3</item>
+    <item name="spinBars">true</item>
+  </style>
 </resources>

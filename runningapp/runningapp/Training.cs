@@ -48,6 +48,7 @@ namespace runningapp
         //Getters en setters voor de TrackList en de TimerText
         internal List<Track> Tracks { get => tracks; set => tracks = value; }
         public string TimerText { get => timerText; set => timerText = value; }
+        public string Name { get => name; set => name = value; }
 
         //Methode om een punt aan de huidige track toe te voegen
         public LatLng AddPoint(Location p)

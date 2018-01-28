@@ -143,10 +143,10 @@ namespace runningapp
             stopButton.Click += delegate {
                 //Alert
                 Android.Support.V7.App.AlertDialog.Builder dialog = new Android.Support.V7.App.AlertDialog.Builder(Activity);
-                dialog.SetMessage("Delete Training?");
-                dialog.SetPositiveButton("Delete", delegate
+                dialog.SetMessage("Stop Training?");
+                dialog.SetPositiveButton("Stop", delegate
                 {
-                    this.StopTraining();
+                    StopTraining();
                 });
 
                 dialog.SetNegativeButton("Cancel", delegate {
@@ -235,6 +235,7 @@ namespace runningapp
 
         private void StopTraining()
         {
+
             //Organiseer de layout voor Opnieuw Starten
             LayoutToStart();
 
@@ -251,15 +252,33 @@ namespace runningapp
             //Clear de Map
             googleMap.Clear();
 
-            SharedPrefsSaver.SaveTraining(training);
-
             // Verberg de stopwatch en afstand
             masterLayout.RemoveView(bottomLayout);
 
-           
+            // Alert voor save training
+            EditText e = new EditText(Activity);
+            DateTime d = DateTime.Now;
+            e.Text = "Training op " + d.ToShortDateString();
+            Android.Support.V7.App.AlertDialog.Builder dialog = new Android.Support.V7.App.AlertDialog.Builder(Activity);
+            dialog.SetView(e);
+            dialog.SetMessage("Do you want to name your training?");
+            dialog.SetPositiveButton("Save", delegate
+            {
+                // Hernoem de training naar de waarde van de EditText
+                training.Name = e.Text;
 
+                // Sla training op m.b.v. SharedPrefSaver Class
+                SharedPrefsSaver.SaveTraining(training);
+            });
+
+            dialog.SetNegativeButton("Don't Save", delegate
+            {
+                
+            });
+            dialog.Show();
         }
 
+        
         //Methode om vast te stellen of een verandering van locatie significant is, zo ja, voeg het punt toe aan de training en teken een lijn
         public void AddLocation(Location location)
         {

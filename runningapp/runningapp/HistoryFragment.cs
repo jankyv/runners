@@ -33,19 +33,12 @@ namespace runningapp
             // return inflater.Inflate(Resource.Layout.YourFragment, container, false);
 
             linearLayout = new LinearLayout(Activity);
-            t = new TextView(Activity);
-            t.Text = "inint";
+            ListView l = new ListView(Activity);
+            l.Adapter = new TrainingAdapter(SharedPrefsSaver.GetTrainingFromPreferences());
 
-            linearLayout.AddView(t);
-            List<Training> trainingList = SharedPrefsSaver.GetTrainingFromPreferences();
-            if (trainingList != null)
-            {
-                t.Text = trainingList[0].Tracks[0].Distance.ToString();
-            }
-            else
-            {
-                t.Text = "null";
-            }
+            linearLayout.AddView(l);
+           
+          
             return linearLayout;
         }
     }

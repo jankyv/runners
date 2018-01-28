@@ -15,21 +15,28 @@ using Android.Content;
 using Android.Support.V7.App;
 using Android.Gms.Maps.Model;
 using System.Collections.Generic;
+using SupportToolbar = Android.Support.V7.Widget.Toolbar;
+using Android.Support.V7.App;
+using Android.Support.V4.Widget;
+using System.Collections.Generic;
+using static Android.Widget.AdapterView;
 
 namespace runningapp
 {
-    [Activity(Label = "runningapp", MainLauncher = true, Theme = "@style/Theme.DesignDemo")]
-    public class MainActivity : AppCompatActivity, 
+    [Activity(Label = "runningapp", MainLauncher = true, Theme = "@style/Theme.MyTheme")]
+    public class MainActivity : ActionBarActivity, 
                                     GoogleMapFragment.IOnMapControlClick, 
                                     GoogleApiClient.IConnectionCallbacks,
                                     GoogleApiClient.IOnConnectionFailedListener, 
                                     Android.Gms.Location.ILocationListener
 
     {
+        
         // Variabele voor de huidige locatie
         private Location _location;
 
         private GoogleMapFragment mapFragment;
+        private HistoryFragment historyFragment;
 
         // Google location api variabelen.
         GoogleApiClient apiClient;
@@ -38,19 +45,29 @@ namespace runningapp
         // bool variabele om te controleren of google play services zijn geinstalleerd.
         bool _isGooglePlayServicesInstalled;
 
+        private SupportToolbar mToolbar;
+        private MyActionBarDrawerToggle mDrawerToggle;
+        private DrawerLayout mDrawerLayout;
+        private ListView mLeftDrawer;
+        private ArrayAdapter mLeftAdapter;
+        private List<string> mLeftDataSet;
+
         // override OnCreate.
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Log.Debug("OnCreate", "OnCreate aangeroepen");
-            SharedPrefsSaver.GetTrainingFromPreferences();
-            
+
+
+            mapFragment = new GoogleMapFragment();
+            historyFragment = new HistoryFragment();
+
             SetContentView(Resource.Layout.Main);
 
-          
-            /* Opzetten en weergeven van GoogleMapFragment */ /// <see cref="GoogleMapFragment.cs"/> 
-            mapFragment = new GoogleMapFragment();
-            HistoryFragment h = new HistoryFragment();
+            SetUpNavigation(savedInstanceState);
+            
+           
+
 
 
             /* Weergeven van GoogleMapFragment d.m.v. methode */ /// <see cref="ShowFragment(Android.App.Fragment)"/>
@@ -59,6 +76,90 @@ namespace runningapp
             /* Controleer of de Google api's aanwezig zijn op het apparaat, zo niet, installeer ze */ /// <see cref="CheckAndInstallGoogleApi()"/>
             CheckAndInstallGoogleApi();
         }
+
+
+        // Method om de navigatie UI op te zetten
+        private void SetUpNavigation(Bundle bundle)
+        {
+            mToolbar = FindViewById<SupportToolbar>(Resource.Id.toolbar);
+            mDrawerLayout = FindViewById<DrawerLayout>(Resource.Id.drawer_layout);
+            mLeftDrawer = FindViewById<ListView>(Resource.Id.left_drawer);
+
+            mLeftDrawer.Tag = 0;
+
+            SetSupportActionBar(mToolbar);
+
+            mLeftDataSet = new List<string>();
+            mLeftDataSet.Add("Run");
+            mLeftDataSet.Add("History");
+            mLeftAdapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, mLeftDataSet);
+            
+            mLeftDrawer.Adapter = mLeftAdapter;
+
+            mLeftDrawer.ItemClick += (sender, e) => 
+            {
+                Log.Info("itemclick", e.ToString());
+                Log.Info("itemclick", sender.ToString());
+
+                switch (e.Position)
+                {
+                    case 0:
+                        ShowFragment(mapFragment);
+                        mDrawerLayout.CloseDrawers();
+
+                        break;
+                    case 1:
+                        ShowFragment(historyFragment);
+                        mDrawerLayout.CloseDrawers();
+                        break;
+                }
+            };
+
+
+            mDrawerToggle = new MyActionBarDrawerToggle(
+                this,                           //Host Activity
+                mDrawerLayout,                  //DrawerLayout
+                Resource.String.openDrawer,     //Opened Message
+                Resource.String.closeDrawer     //Closed Message
+            );
+
+            SupportActionBar.SetDisplayHomeAsUpEnabled(true);
+
+            mDrawerLayout.SetDrawerListener(mDrawerToggle);
+            SupportActionBar.SetHomeButtonEnabled(true);
+            SupportActionBar.SetDisplayShowTitleEnabled(false);
+            mDrawerToggle.SyncState();
+
+            if (bundle != null)
+            {
+                if (bundle.GetString("DrawerState") == "Opened")
+                {
+                    SupportActionBar.SetTitle(Resource.String.openDrawer);
+                }
+
+                else
+                {
+                    SupportActionBar.SetTitle(Resource.String.closeDrawer);
+                }
+            }
+
+            else
+            {
+                //This is the first the time the activity is ran
+                SupportActionBar.SetTitle(Resource.String.closeDrawer);
+            }
+
+        }
+
+       
+    public override bool OnOptionsItemSelected(IMenuItem item)
+        {
+            mDrawerToggle.OnOptionsItemSelected(item);
+            return base.OnOptionsItemSelected(item);
+        }
+
+
+
 
         // Override onresume.
         protected override void OnResume()
@@ -270,7 +371,40 @@ namespace runningapp
 
         }
 
-      
+        public override bool OnCreateOptionsMenu(IMenu menu)
+        {
+            MenuInflater.Inflate(Resource.Menu.action_menu, menu);
+            return base.OnCreateOptionsMenu(menu);
+        }
+
+        protected override void OnSaveInstanceState(Bundle outState)
+        {
+            if (mDrawerLayout.IsDrawerOpen((int)GravityFlags.Left))
+            {
+                outState.PutString("DrawerState", "Opened");
+            }
+
+            else
+            {
+                outState.PutString("DrawerState", "Closed");
+            }
+
+            base.OnSaveInstanceState(outState);
+        }
+
+        protected override void OnPostCreate(Bundle savedInstanceState)
+        {
+            base.OnPostCreate(savedInstanceState);
+            mDrawerToggle.SyncState();
+        }
+
+        public override void OnConfigurationChanged(Android.Content.Res.Configuration newConfig)
+        {
+            base.OnConfigurationChanged(newConfig);
+            mDrawerToggle.OnConfigurationChanged(newConfig);
+        }
+
+
     }
 }
 
