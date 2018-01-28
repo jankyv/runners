@@ -54,8 +54,12 @@ namespace runningapp
 
             TextView name = view.FindViewById<TextView>(Resource.Id.nameText);
             TextView distance = view.FindViewById<TextView>(Resource.Id.distanceText);
-            name.Text = trainingList[position].Name;
-            distance.Text = trainingList[position].GetCurrentDistance().ToString();
+            TextView time = view.FindViewById<TextView>(Resource.Id.time);
+
+            Training thisTraining = trainingList[position];
+            name.Text = thisTraining.Name;
+            distance.Text = thisTraining.GetCurrentDistance().ToString();
+            time.Text = thisTraining.timeElapsed.ToString();
             return view;
         }
     }

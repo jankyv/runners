@@ -23,7 +23,7 @@ namespace runningapp
         public static List<Training> GetTrainingFromPreferences()
         {
             // get shared preferences
-            ISharedPreferences pref = Application.Context.GetSharedPreferences("training", FileCreationMode.Private);
+            ISharedPreferences pref = Application.Context.GetSharedPreferences("training1", FileCreationMode.Private);
 
             // read exisiting value
             var trainings = pref.GetString("Training",null);
@@ -60,7 +60,7 @@ namespace runningapp
         private static void SaveTrainingListToPreferences(List<Training> list)
         {
             // get shared preferences
-            ISharedPreferences pref = Application.Context.GetSharedPreferences("training", FileCreationMode.Private);
+            ISharedPreferences pref = Application.Context.GetSharedPreferences("training1", FileCreationMode.Private);
 
             // read exisiting value
             var trainings = pref.Edit();

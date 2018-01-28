@@ -13,6 +13,7 @@ using Android.Locations;
 using Android.Gms.Maps.Model;
 using Android.Util;
 using System.Timers;
+using System.Diagnostics;
 
 namespace runningapp
 {
@@ -31,6 +32,10 @@ namespace runningapp
         int hour, min, sec;
         private string timerText;
 
+        private Stopwatch stopWatch;
+
+        public TimeSpan timeElapsed;
+
         //Constructor, wordt aangeroepen bij start van de Training.
         public Training()
         {
@@ -41,6 +46,8 @@ namespace runningapp
 
             //Timer instellen en starten
             timer = new MyTimer();
+            stopWatch = new Stopwatch();
+            stopWatch.Start();
             
             timer.Start();
         }
@@ -64,6 +71,8 @@ namespace runningapp
             trackCount++;
 
             //Stop de timer
+            stopWatch.Stop();
+            this.timeElapsed = stopWatch.Elapsed;
             timer.Stop();
         }
 
